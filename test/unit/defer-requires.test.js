@@ -101,16 +101,25 @@ suite('deferRequires(source, deferredModules)', () => {
         }
       }).call(this)
     `)
-
   })
 
   test('references to shadowed variables', () => {
     assert.equal(deferRequires(dedent`
       const a = require('a')
-      function main () {
-        a.foo()
-        let a = require('something-else')
-        a.bar()
+      function outer () {
+        console.log(a)
+        function inner () {
+          console.log(a)
+        }
+        let a = []
+      }
+
+      function other () {
+        console.log(a)
+        function inner () {
+          let a = []
+          console.log(a)
+        }
       }
     `, new Set(['a'])), dedent`
       let a;
@@ -119,10 +128,20 @@ suite('deferRequires(source, deferredModules)', () => {
         return a = a || require('a');
       }
 
-      function main () {
-        get_a().foo()
-        let a = require('something-else')
-        a.bar()
+      function outer () {
+        console.log(a)
+        function inner () {
+          console.log(a)
+        }
+        let a = []
+      }
+
+      function other () {
+        console.log(get_a())
+        function inner () {
+          let a = []
+          console.log(a)
+        }
       }
     `)
   })
