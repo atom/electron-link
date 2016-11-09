@@ -75,5 +75,51 @@ describe('deferRequires(source, deferredModules)', () => {
         require('a')()
       `, new Set(['a']))
     })
+
+    // requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)
+    assert.equal(deferRequires(dedent`
+      (function () {
+        const a = require('a')
+        const b = require('b')
+        function main () {
+          return a + b
+        }
+      }).call(this)
+    `, new Set(['a'])), dedent`
+      (function () {
+        let a;
+
+        function get_a() {
+          return a = a || require('a');
+        }
+
+        const b = require('b')
+        function main () {
+          return get_a() + b
+        }
+      }).call(this)
+    `)
+
+    // references to shadowed variables
+    assert.equal(deferRequires(dedent`
+      const a = require('a')
+      function main () {
+        a.foo()
+        let a = require('something-else')
+        a.bar()
+      }
+    `, new Set(['a'])), dedent`
+      let a;
+
+      function get_a() {
+        return a = a || require('a');
+      }
+
+      function main () {
+        get_a().foo()
+        let a = require('something-else')
+        a.bar()
+      }
+    `)
   })
 })
