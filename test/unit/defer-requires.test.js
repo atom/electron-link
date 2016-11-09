@@ -4,9 +4,8 @@ const assert = require('assert')
 const dedent = require('dedent')
 const deferRequires = require('../../lib/defer-requires')
 
-describe('deferRequires(source, deferredModules)', () => {
-  it('replaces top-level variables that depend on requiring deferred modules with lazy functions', () => {
-    // simple require
+suite('deferRequires(source, deferredModules)', () => {
+  test('simple require', () => {
     assert.equal(deferRequires(dedent`
       const a = require('a')
       const b = require('b')
@@ -25,8 +24,9 @@ describe('deferRequires(source, deferredModules)', () => {
         return get_a() + b
       }
     `)
+  })
 
-    // top-level variables assignments that depend on previous requires
+  test('top-level variables assignments that depend on previous requires', () => {
     assert.equal(deferRequires(dedent`
       const a = require('a')
       const b = require('b')
@@ -62,8 +62,9 @@ describe('deferRequires(source, deferredModules)', () => {
         get_e()()
       }
     `)
+  })
 
-    // top-level usage of deferred modules
+  test('top-level usage of deferred modules', () => {
     assert.throws(() => {
       deferRequires(dedent`
         var a = require('a')
@@ -75,8 +76,9 @@ describe('deferRequires(source, deferredModules)', () => {
         require('a')()
       `, new Set(['a']))
     })
+  })
 
-    // requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)
+  test('requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)', () => {
     assert.equal(deferRequires(dedent`
       (function () {
         const a = require('a')
@@ -100,7 +102,9 @@ describe('deferRequires(source, deferredModules)', () => {
       }).call(this)
     `)
 
-    // references to shadowed variables
+  })
+
+  test('references to shadowed variables', () => {
     assert.equal(deferRequires(dedent`
       const a = require('a')
       function main () {
