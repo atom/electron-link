@@ -2,6 +2,7 @@
 
 const assert = require('assert')
 const dedent = require('dedent')
+const path = require('path')
 const processRequires = require('../../lib/process-requires')
 
 suite('processRequires({source, didFindRequire})', () => {
@@ -154,5 +155,46 @@ suite('processRequires({source, didFindRequire})', () => {
         }
       `
     )
+  })
+
+  test('path resolution', () => {
+    const baseDirPath = path.resolve(__dirname, '..', 'fixtures', 'module')
+    const filePath = path.join(baseDirPath, 'dir', 'entry.js')
+    const source = dedent`
+      const a = require('a')
+      const b = require('./subdir/b')
+      const c = require('c')
+    `
+    const requiredModules = []
+    assert.equal(
+      processRequires({baseDirPath, filePath, source, didFindRequire: (mod) => {
+        requiredModules.push(mod)
+        return true
+      }}),
+      dedent`
+        let a;
+
+        function get_a() {
+          return a = a || require("./node_modules/a/index.js");
+        }
+
+        let b;
+
+        function get_b() {
+          return b = b || require("./dir/subdir/b");
+        }
+
+        let c;
+
+        function get_c() {
+          return c = c || require('c');
+        }
+      `
+    )
+    assert.deepEqual(requiredModules, [
+      path.join(baseDirPath, 'node_modules', 'a', 'index.js'),
+      path.join(baseDirPath, 'dir', 'subdir', 'b'),
+      'c'
+    ])
   })
 })
