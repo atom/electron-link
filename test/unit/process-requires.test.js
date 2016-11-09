@@ -3,6 +3,7 @@
 const assert = require('assert')
 const dedent = require('dedent')
 const path = require('path')
+const recast = require('recast')
 const processRequires = require('../../lib/process-requires')
 
 suite('processRequires({source, didFindRequire})', () => {
@@ -15,7 +16,7 @@ suite('processRequires({source, didFindRequire})', () => {
       }
     `
     assert.equal(
-      processRequires({source, didFindRequire: (mod) => mod === 'a'}),
+      recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a'})).code,
       dedent`
         let a;
 
@@ -45,7 +46,7 @@ suite('processRequires({source, didFindRequire})', () => {
       }
     `
     assert.equal(
-      processRequires({source, didFindRequire: (mod) => ['a', 'c'].indexOf(mod) >= 0}),
+      recast.print(processRequires({source, didFindRequire: (mod) => ['a', 'c'].indexOf(mod) >= 0})).code,
       dedent`
         let a;
 
@@ -92,7 +93,7 @@ suite('processRequires({source, didFindRequire})', () => {
       }).call(this)
     `
     assert.equal(
-      processRequires({source, didFindRequire: (mod) => mod === 'a'}),
+      recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a'})).code,
       dedent`
         (function () {
           let a;
@@ -130,7 +131,7 @@ suite('processRequires({source, didFindRequire})', () => {
       }
     `
     assert.equal(
-      processRequires({source, didFindRequire: (mod) => mod === 'a'}),
+      recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a'})).code,
       dedent`
         let a;
 
@@ -167,10 +168,10 @@ suite('processRequires({source, didFindRequire})', () => {
     `
     const requiredModules = []
     assert.equal(
-      processRequires({baseDirPath, filePath, source, didFindRequire: (mod) => {
+      recast.print(processRequires({baseDirPath, filePath, source, didFindRequire: (mod) => {
         requiredModules.push(mod)
         return true
-      }}),
+      }})).code,
       dedent`
         let a;
 
