@@ -2,7 +2,7 @@
   "name": "electron-link",
   "version": "0.0.1",
   "description": "Generates scripts to pass to V8's `mksnapshot` tool.",
-  "main": "index.js",
+  "main": "lib/generate-snapshot-script",
   "scripts": {
     "test": "mocha test/**/*.test.js --ui=tdd"
   },
