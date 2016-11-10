@@ -171,6 +171,10 @@ suite('processRequires({source, didFindRequire})', () => {
       const a = require('a')
       const b = require('./subdir/b')
       const c = require('c')
+
+      function inner () {
+        require('./subdir/b')
+      }
     `
     const requiredModules = []
     assert.equal(
@@ -195,6 +199,10 @@ suite('processRequires({source, didFindRequire})', () => {
 
         function get_c() {
           return c = c || require('c');
+        }
+
+        function inner () {
+          require("./dir/subdir/b.js")
         }
       `
     )
