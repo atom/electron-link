@@ -174,6 +174,7 @@ suite('processRequires({source, didFindRequire})', () => {
 
       function inner () {
         require('./subdir/b')
+        require('d')
       }
     `
     const requiredModules = []
@@ -203,13 +204,16 @@ suite('processRequires({source, didFindRequire})', () => {
 
         function inner () {
           require("./dir/subdir/b.js")
+          require('d')
         }
       `
     )
     assert.deepEqual(requiredModules, [
       path.join(baseDirPath, 'node_modules', 'a', 'index.js'),
       path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
-      'c'
+      'c',
+      path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
+      'd'
     ])
   })
 })
