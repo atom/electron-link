@@ -1,1 +1,3 @@
-module.exports = 'a' + require('./subdir/b').b
+module.exports = function () {
+  return 'a' + require('./subdir/b').b
+}
