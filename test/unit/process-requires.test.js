@@ -80,6 +80,12 @@ suite('processRequires({source, didFindRequire})', () => {
     assert.throws(() => {
       processRequires({source: `require('a')()`, didFindRequire: (mod) => true})
     })
+    assert.throws(() => {
+      processRequires({source: `foo = require('a')`, didFindRequire: (mod) => true})
+    })
+    assert.throws(() => {
+      processRequires({source: `module.exports.a = require('a')`, didFindRequire: (mod) => true})
+    })
   })
 
   test('requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)', () => {
