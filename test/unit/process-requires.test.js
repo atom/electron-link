@@ -164,6 +164,33 @@ suite('processRequires({source, didFindRequire})', () => {
     )
   })
 
+  test('multiple assignments separated by commas referencing deferred module', () => {
+    const source = dedent`
+      let a, b, c, d, e, f;
+      a = 1, b = 2, c = 3;
+      d = require("d"), e = d.e, f = e.f;
+    `
+    assert.equal(
+      recast.print(processRequires({source, didFindRequire: () => true})).code,
+      dedent`
+        let a, b, c, d, e, f;
+        a = 1, b = 2, c = 3;
+
+        function get_d() {
+          return d = d || require("d");
+        }
+
+        function get_e() {
+          return e = e || get_d().e;
+        }
+
+        function get_f() {
+          return f = f || get_e().f;
+        }
+      `
+    )
+  })
+
   test('path resolution', () => {
     const baseDirPath = path.resolve(__dirname, '..', 'fixtures', 'module')
     const filePath = path.join(baseDirPath, 'dir', 'entry.js')
