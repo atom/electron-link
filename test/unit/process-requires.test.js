@@ -99,6 +99,14 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
           return a + b
         }
       }).call(this)
+
+      (function () {
+        const a = require('a')
+        const b = require('b')
+        function main () {
+          return a + b
+        }
+      })()
     `
     assert.equal(
       recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a'})).code,
@@ -115,6 +123,19 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
             return get_a() + b
           }
         }).call(this)
+
+        (function () {
+          let a;
+
+          function get_a() {
+            return a = a || require('a');
+          }
+
+          const b = require('b')
+          function main () {
+            return get_a() + b
+          }
+        })()
       `
     )
   })
