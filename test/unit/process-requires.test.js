@@ -12,6 +12,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
       const a = require('a')
       const b = require('b')
       function main () {
+        const c = {a: b, b: a}
         return a + b
       }
     `
@@ -26,6 +27,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
 
         const b = require('b')
         function main () {
+          const c = {a: b, b: get_a()}
           return get_a() + b
         }
       `
