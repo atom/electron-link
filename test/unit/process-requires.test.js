@@ -6,7 +6,7 @@ const path = require('path')
 const recast = require('recast')
 const processRequires = require('../../lib/process-requires')
 
-suite('processRequires({source, didFindRequire})', () => {
+suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => {
   test('simple require', () => {
     const source = dedent`
       const a = require('a')
@@ -187,6 +187,17 @@ suite('processRequires({source, didFindRequire})', () => {
         function get_f() {
           return f = f || get_e().f;
         }
+      `
+    )
+  })
+
+  test('JSON source', () => {
+    const filePath = 'something.json'
+    const source = '{"a": 1, "b": 2}'
+    assert.equal(
+      recast.print(processRequires({filePath, source, didFindRequire: () => false})).code,
+      dedent`
+        module.exports = {"a": 1, "b": 2}
       `
     )
   })

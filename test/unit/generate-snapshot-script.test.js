@@ -14,6 +14,6 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     })
     eval(snapshotScript)
     snapshotResult.global.require = require
-    assert.equal(snapshotResult.global.initialize(), 'abbA')
+    assert.equal(snapshotResult.global.initialize(), 'abbAd')
   })
 })
