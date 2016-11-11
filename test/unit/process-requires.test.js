@@ -232,6 +232,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
       const a = require('a')
       const b = require('./subdir/b')
       const c = require('c')
+      const fs = require('fs')
 
       function inner () {
         require('./subdir/b')
@@ -263,6 +264,12 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
           return c = c || require('c');
         }
 
+        let fs;
+
+        function get_fs() {
+          return fs = fs || require('fs');
+        }
+
         function inner () {
           require("./dir/subdir/b.js")
           require('d')
@@ -273,6 +280,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
       path.join(baseDirPath, 'node_modules', 'a', 'index.js'),
       path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
       'c',
+      'fs',
       path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
       'd'
     ])
