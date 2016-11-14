@@ -90,6 +90,35 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
     })
   })
 
+  test('top-level usage of babel _asyncToGenerator helper', () => {
+    const source = dedent`
+      var a = require('a')
+      var b = a.b
+      var something = _asyncToGenerator(function foo () {
+        b.bar()
+      })
+    `
+    assert.equal(
+      recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a'})).code,
+      dedent`
+        var a
+
+        function get_a() {
+          return a = a || require('a');
+        }
+
+        var b
+
+        function get_b() {
+          return b = b || get_a().b;
+        }
+
+        var something = _asyncToGenerator(function foo () {
+          get_b().bar()
+        })
+    `)
+  })
+
   test('requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)', () => {
     const source = dedent`
       (function () {
@@ -187,7 +216,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
     )
   })
 
-  test('multiple assignments separated by commas referencing deferred module', () => {
+  test('multiple assignments separated by commas referencing deferred modules', () => {
     const source = dedent`
       let a, b, c, d, e, f;
       a = 1, b = 2, c = 3;
