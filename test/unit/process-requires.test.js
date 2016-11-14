@@ -265,6 +265,8 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
 
       function inner () {
         require('./subdir/b')
+        require.resolve('a')
+        require.resolve('d')
         require('d')
       }
     `
@@ -301,6 +303,8 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
 
         function inner () {
           require("./dir/subdir/b.js")
+          require.resolve("./node_modules/a/index.js")
+          require.resolve('d')
           require('d')
         }
       `
