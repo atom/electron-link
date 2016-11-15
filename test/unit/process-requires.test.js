@@ -216,6 +216,36 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
     )
   })
 
+  test('references to globals', () => {
+    const source = dedent`
+      global.a = 1
+      process.b = 2
+      window.c = 3
+
+      function inner () {
+        const window = {}
+        global.d = 4
+        process.e = 5
+        window.f = 6
+      }
+    `
+    assert.equal(
+      recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a'})).code,
+      dedent`
+        get_global().a = 1
+        get_process().b = 2
+        get_window().c = 3
+
+        function inner () {
+          const window = {}
+          get_global().d = 4
+          get_process().e = 5
+          window.f = 6
+        }
+      `
+    )
+  })
+
   test('multiple assignments separated by commas referencing deferred modules', () => {
     const source = dedent`
       let a, b, c, d, e, f;
