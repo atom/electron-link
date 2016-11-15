@@ -38,12 +38,14 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
     const source = dedent`
       const a = require('a')
       const b = require('b')
-      const c = require('c').c.d
+      const c = require('c').foo.bar
+      const d = c.X | c.Y | c.Z
       var e
       e = c.e
       const f = b.f
       function main () {
-        c.foo()
+        c.qux()
+        console.log(d)
         e()
       }
     `
@@ -60,7 +62,13 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
         let c;
 
         function get_c() {
-          return c = c || require('c').c.d;
+          return c = c || require('c').foo.bar;
+        }
+
+        let d;
+
+        function get_d() {
+          return d = d || get_c().X | get_c().Y | get_c().Z;
         }
 
         var e
@@ -69,7 +77,8 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
         };
         const f = b.f
         function main () {
-          get_c().foo()
+          get_c().qux()
+          console.log(get_d())
           get_e()()
         }
     `)
