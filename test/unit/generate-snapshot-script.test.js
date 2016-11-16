@@ -13,7 +13,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
     })
     eval(snapshotScript)
-    snapshotResult.setGlobals(global, process, {}, require)
+    snapshotResult.setGlobals(global, process, {}, {}, require)
     assert(!global.moduleInitialized)
     assert.equal(global.initialize(), 'abbAd')
     assert(global.moduleInitialized)

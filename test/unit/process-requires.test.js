@@ -217,12 +217,14 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
       global.a = 1
       process.b = 2
       window.c = 3
+      document.d = 4
 
       function inner () {
         const window = {}
-        global.d = 4
-        process.e = 5
-        window.f = 6
+        global.e = 4
+        process.f = 5
+        window.g = 6
+        document.h = 7
       }
     `
     assert.equal(
@@ -231,12 +233,14 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
         get_global().a = 1
         get_process().b = 2
         get_window().c = 3
+        get_document().d = 4
 
         function inner () {
           const window = {}
-          get_global().d = 4
-          get_process().e = 5
-          window.f = 6
+          get_global().e = 4
+          get_process().f = 5
+          window.g = 6
+          get_document().h = 7
         }
       `
     )
