@@ -34,6 +34,45 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
     )
   })
 
+  test('conditional requires', () => {
+    const source = dedent`
+      let a, b;
+      if (condition) {
+        a = require('a')
+        b = require('b')
+      } else {
+        a = require('c')
+        b = require('d')
+      }
+
+      function main () {
+        return a + b
+      }
+    `
+    assert.equal(
+      recast.print(processRequires({source, didFindRequire: (mod) => mod === 'a' || mod === 'c'})).code,
+      dedent`
+        let a, b;
+        let get_a;
+        if (condition) {
+          get_a = function() {
+            return a = a || require('a');
+          }
+          b = require('b')
+        } else {
+          get_a = function() {
+            return a = a || require('c');
+          }
+          b = require('d')
+        }
+
+        function main () {
+          return get_a() + b
+        }
+      `
+    )
+  })
+
   test('top-level variables assignments that depend on previous requires', () => {
     const source = dedent`
       const a = require('a')
