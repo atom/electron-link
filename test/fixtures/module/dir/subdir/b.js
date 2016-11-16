@@ -1,1 +1,3 @@
-exports.b = 'b'
+(function () {
+  this.b = 'b'
+}).call(this)
