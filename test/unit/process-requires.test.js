@@ -312,6 +312,38 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
     )
   })
 
+  test('require with destructuring assignment', () => {
+    const source = dedent`
+      const {a, b, c} = require('module').foo
+
+      function main() {
+        a.bar()
+      }
+    `
+    assert.equal(
+      recast.print(processRequires({source, didFindRequire: () => true})).code,
+      dedent`
+        let {a, b, c} = {};
+
+        function get_a() {
+          return a = a || require('module').foo.a;
+        }
+
+        function get_b() {
+          return b = b || require('module').foo.b;
+        }
+
+        function get_c() {
+          return c = c || require('module').foo.c;
+        }
+
+        function main() {
+          get_a().bar()
+        }
+      `
+    )
+  })
+
   test('JSON source', () => {
     const filePath = 'something.json'
     const source = '{"a": 1, "b": 2}'
