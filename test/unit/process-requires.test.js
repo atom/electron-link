@@ -414,7 +414,6 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
       path.join(baseDirPath, 'node_modules', 'a', 'index.js'),
       path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
       'c',
-      'fs',
       path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
       'd'
     ])
