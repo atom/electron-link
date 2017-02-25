@@ -28,7 +28,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
         const b = require('b')
         function main () {
           const c = {a: b, b: get_a()}
-          return get_a() + b
+          return get_a() + b;
         }
       `
     )
@@ -67,7 +67,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
         }
 
         function main () {
-          return get_a() + b
+          return get_a() + b;
         }
       `
     )
@@ -176,7 +176,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
 
           const b = require('b')
           function main () {
-            return get_a() + b
+            return get_a() + b;
           }
         }).call(this)
 
@@ -189,7 +189,7 @@ suite('processRequires({baseDirPath, filePath, source, didFindRequire})', () => 
 
           const b = require('b')
           function main () {
-            return get_a() + b
+            return get_a() + b;
           }
         })()
 
