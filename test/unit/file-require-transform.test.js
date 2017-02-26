@@ -373,8 +373,8 @@ suite('FileRequireTransform', () => {
     `
     const requiredModules = []
     assert.equal(
-      new FileRequireTransform({baseDirPath, filePath, source, didFindRequire: (mod) => {
-        requiredModules.push(mod)
+      new FileRequireTransform({baseDirPath, filePath, source, didFindRequire: (unresolvedPath, resolvedPath) => {
+        requiredModules.push({unresolvedPath, resolvedPath})
         return true
       }}).apply(),
       dedent`
@@ -411,11 +411,11 @@ suite('FileRequireTransform', () => {
       `
     )
     assert.deepEqual(requiredModules, [
-      path.join(baseDirPath, 'node_modules', 'a', 'index.js'),
-      path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
-      'c',
-      path.join(baseDirPath, 'dir', 'subdir', 'b.js'),
-      'd'
+      {unresolvedPath: 'a' , resolvedPath: path.join(baseDirPath, 'node_modules', 'a', 'index.js')},
+      {unresolvedPath: './subdir/b' , resolvedPath: path.join(baseDirPath, 'dir', 'subdir', 'b.js')},
+      {unresolvedPath: 'c' , resolvedPath: 'c'},
+      {unresolvedPath: './subdir/b' , resolvedPath: path.join(baseDirPath, 'dir', 'subdir', 'b.js')},
+      {unresolvedPath: 'd' , resolvedPath: 'd'},
     ])
   })
 })
