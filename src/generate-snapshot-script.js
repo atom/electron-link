@@ -38,7 +38,7 @@ module.exports = async function (cache, options) {
       const cachedTransform = await cache.get(source)
       const useCachedTransform =
         cachedTransform ?
-        cachedTransform.requires.every(r => transform.resolveModulePath(r.unresolvedPath) === r.resolvedPath) :
+        cachedTransform.requires.every(r => (transform.resolveModulePath(r.unresolvedPath) || r.unresolvedPath) === r.resolvedPath) :
         false
 
       let transformedSource, requires

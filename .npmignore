@@ -1,2 +1,4 @@
+.npmrc
+.babelrc
 src
 test
