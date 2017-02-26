@@ -2,21 +2,27 @@
   "name": "electron-link",
   "version": "0.0.1",
   "description": "Generates scripts to pass to V8's `mksnapshot` tool.",
-  "main": "lib/generate-snapshot-script",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "mocha test/**/*.test.js --ui=tdd",
-    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive"
+    "test": "electron-mocha test/**/*.test.js --ui=tdd --compilers js:babel-register",
+    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive --compilers js:babel-register",
+    "prepublish": "rm -rf lib && babel src -d lib"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-plugin-transform-async-to-generator": "^6.22.0",
+    "babel-register": "^6.23.0",
     "dedent": "^0.6.0",
     "electron": "^1.4.15",
     "electron-mocha": "^3.3.0",
-    "mocha": "^3.1.2"
+    "temp": "^0.8.3"
   },
   "dependencies": {
     "ast-util": "^0.6.0",
+    "leveldown": "^1.6.0",
+    "levelup": "^1.3.3",
     "recast": "^0.11.17",
     "resolve": "^1.1.7"
   }
