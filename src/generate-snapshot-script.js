@@ -41,7 +41,6 @@ module.exports = async function (cache, options) {
         cachedTransform.requires.every(r => transform.resolveModulePath(r.unresolvedPath) === r.resolvedPath) :
         false
 
-      debugger
       let transformedSource, requires
       if (useCachedTransform) {
         transformedSource = cachedTransform.source
