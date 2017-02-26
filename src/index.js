@@ -1,4 +1,4 @@
-const TransformCachce = require('./transform-cache')
+const TransformCache = require('./transform-cache')
 const generateSnapshotScript = require('./generate-snapshot-script')
 
 module.exports = async function (options) {
