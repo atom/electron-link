@@ -25,7 +25,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       eval(snapshotScript)
       snapshotResult.setGlobals(global, process, {}, {}, require)
       assert(!global.moduleInitialized)
-      assert.equal(global.initialize(), 'abbAd')
+      assert.equal(global.initialize(), 'abx/ybAd')
       assert(global.moduleInitialized)
       assert.equal((await cache._allKeys()).size, 8)
     }
