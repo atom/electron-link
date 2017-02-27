@@ -11,12 +11,12 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
   })
 
   test('simple integration test', async () => {
-    const cache = new TransformCache(temp.mkdirSync())
-    await cache.loadOrCreate()
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module', 'index.js')
 
     {
+      const cache = new TransformCache(temp.mkdirSync())
+      await cache.loadOrCreate()
       const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
@@ -27,9 +27,12 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       assert(!global.moduleInitialized)
       assert.equal(global.initialize(), 'abbAd')
       assert(global.moduleInitialized)
+      assert.equal((await cache._allKeys()).size, 8)
     }
 
     {
+      const cache = new TransformCache(temp.mkdirSync())
+      await cache.loadOrCreate()
       await cache.put({
         filePath: mainPath,
         original: fs.readFileSync(mainPath, 'utf8'),
@@ -44,6 +47,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       eval(snapshotScript)
       snapshotResult.setGlobals(global, process, {}, {}, require)
       assert.equal(global.initialize(), 'cached')
+      assert.equal((await cache._allKeys()).size, 2)
     }
   })
 })

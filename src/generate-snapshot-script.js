@@ -55,6 +55,8 @@ module.exports = async function (cache, options) {
     }
   }
 
+  await cache.deleteUnusedEntries()
+
   // Phase 2: Now use the data we gathered during phase 1 to build a snapshot
   // script based on `./blueprint.js`.
   let snapshotContent = fs.readFileSync(path.join(__dirname, 'blueprint.js'), 'utf8')

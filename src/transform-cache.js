@@ -5,6 +5,7 @@ module.exports = class TransformCache {
   constructor (filePath) {
     this.filePath = filePath
     this.db = null
+    this.usedKeys = new Set()
   }
 
   loadOrCreate () {
@@ -41,12 +42,23 @@ module.exports = class TransformCache {
     }
   }
 
+  async deleteUnusedEntries () {
+    const unusedKeys = await this._allKeys()
+    for (const key of this.usedKeys) {
+      unusedKeys.delete(key)
+    }
+
+    const deleteOperations = Array.from(unusedKeys).map((key) => { return {key, type: 'del'} })
+    await this._batch(deleteOperations)
+  }
+
   _put (key, value) {
     return new Promise((resolve, reject) => {
       this.db.put(key, value, {}, (error) => {
         if (error) {
           reject(error)
         } else {
+          this.usedKeys.add(key)
           resolve()
         }
       })
@@ -63,7 +75,30 @@ module.exports = class TransformCache {
             reject(error)
           }
         } else {
+          this.usedKeys.add(key)
           resolve(value)
+        }
+      })
+    })
+  }
+
+  _allKeys () {
+    return new Promise((resolve, reject) => {
+      const keys = new Set()
+      const stream = this.db.createKeyStream()
+      stream.on('data', (key) => { keys.add(key) })
+      stream.on('error', (error) => { reject(error) })
+      stream.on('close', () => { resolve(keys) })
+    })
+  }
+
+  _batch (operations) {
+    return new Promise((resolve, reject) => {
+      this.db.batch(operations, {}, (error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
         }
       })
     })
