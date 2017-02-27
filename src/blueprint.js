@@ -1,7 +1,7 @@
 var snapshotResult = (function () {
   let process = {}
   Object.defineProperties(process, {
-    'platform': {value: 'darwin', enumerable: false},
+    'platform': {value: 'processPlatform', enumerable: false},
     'argv': {value: [], enumerable: false},
     'env': {value: {}, enumerable: false}
   })

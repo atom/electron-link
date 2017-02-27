@@ -12,7 +12,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
 
   test('simple integration test', async () => {
     const baseDirPath = __dirname
-    const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module', 'index.js')
+    const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
 
     {
       const cache = new TransformCache(temp.mkdirSync())
@@ -49,5 +49,20 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       assert.equal(global.initialize(), 'cached')
       assert.equal((await cache._allKeys()).size, 2)
     }
+  })
+
+  test('process.platform', async () => {
+    const baseDirPath = __dirname
+    const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-2', 'index.js')
+    const cache = new TransformCache(temp.mkdirSync())
+    await cache.loadOrCreate()
+    const snapshotScript = await generateSnapshotScript(cache, {
+      baseDirPath,
+      mainPath,
+      shouldExcludeModule: () => false
+    })
+    eval(snapshotScript)
+    snapshotResult.setGlobals(global, process, {}, {}, require)
+    assert.deepEqual(global.module2, {platform: process.platform})
   })
 })

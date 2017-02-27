@@ -68,6 +68,10 @@ module.exports = async function (cache, options) {
   }
   snapshotContent = snapshotContent.replace('mainModuleRequirePath', `"${relativeFilePath}"`)
 
+  // Assign the current platform to `process.platform` so that it can be used
+  // even while creating the snapshot.
+  snapshotContent = snapshotContent.replace('processPlatform', process.platform)
+
   // Replace `require.definitions = {}` with an assignment of the actual definitions
   // of all the modules.
   let definitions = ''

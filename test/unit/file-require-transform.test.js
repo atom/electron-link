@@ -356,7 +356,7 @@ suite('FileRequireTransform', () => {
   })
 
   test('path resolution', () => {
-    const baseDirPath = path.resolve(__dirname, '..', 'fixtures', 'module')
+    const baseDirPath = path.resolve(__dirname, '..', 'fixtures', 'module-1')
     const filePath = path.join(baseDirPath, 'dir', 'entry.js')
     const source = dedent`
       const a = require('a')
