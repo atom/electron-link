@@ -31,6 +31,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
 
     {
       await cache.put({
+        filePath: mainPath,
         original: fs.readFileSync(mainPath, 'utf8'),
         transformed: 'global.initialize = () => "cached"',
         requires: []

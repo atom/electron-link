@@ -20,20 +20,20 @@ module.exports = class TransformCache {
     })
   }
 
-  async put ({original, transformed, requires}) {
+  async put ({filePath, original, transformed, requires}) {
     const hash = crypto.createHash('sha1')
     hash.update(original)
     const key = hash.digest('hex')
-    await this._put(key + ':source', transformed)
-    await this._put(key + ':requires', JSON.stringify(requires))
+    await this._put(filePath + ':' + key + ':source', transformed)
+    await this._put(filePath + ':' + key + ':requires', JSON.stringify(requires))
   }
 
-  async get (content) {
+  async get ({filePath, content}) {
     const hash = crypto.createHash('sha1')
     hash.update(content)
     const key = hash.digest('hex')
-    const source = await this._get(key + ':source')
-    const requires = await this._get(key + ':requires')
+    const source = await this._get(filePath + ':' + key + ':source')
+    const requires = await this._get(filePath + ':' + key + ':requires')
     if (source && requires) {
       return {source, requires: JSON.parse(requires)}
     } else {
