@@ -2,19 +2,31 @@ const crypto = require('crypto')
 const levelup = require('levelup')
 
 module.exports = class TransformCache {
-  constructor (filePath) {
+  constructor (filePath, invalidationKey) {
     this.filePath = filePath
+    this.invalidationKey = invalidationKey
     this.db = null
     this.usedKeys = new Set()
   }
 
-  loadOrCreate () {
+  async loadOrCreate () {
+    await this._initialize()
+    const oldKey = await this._get('invalidation-key')
+    const newKey = crypto.createHash('sha1').update(this.invalidationKey).digest('hex')
+    if (oldKey !== newKey) {
+      const keys = await this._allKeys()
+      const deleteOperations = Array.from(keys).map((key) => { return {key, type: 'del'} })
+      await this._batch(deleteOperations)
+      await this._put('invalidation-key', newKey)
+    }
+  }
+
+  dispose () {
     return new Promise((resolve, reject) => {
-      levelup(this.filePath, {valueEncoding: 'json'}, (error, db) => {
+      this.db.close((error) => {
         if (error) {
           reject(error)
         } else {
-          this.db = db
           resolve()
         }
       })
@@ -22,17 +34,13 @@ module.exports = class TransformCache {
   }
 
   async put ({filePath, original, transformed, requires}) {
-    const hash = crypto.createHash('sha1')
-    hash.update(original)
-    const key = hash.digest('hex')
+    const key = crypto.createHash('sha1').update(original).digest('hex')
     await this._put(filePath + ':' + key + ':source', transformed)
     await this._put(filePath + ':' + key + ':requires', JSON.stringify(requires))
   }
 
   async get ({filePath, content}) {
-    const hash = crypto.createHash('sha1')
-    hash.update(content)
-    const key = hash.digest('hex')
+    const key = crypto.createHash('sha1').update(content).digest('hex')
     const source = await this._get(filePath + ':' + key + ':source')
     const requires = await this._get(filePath + ':' + key + ':requires')
     if (source && requires) {
@@ -50,6 +58,19 @@ module.exports = class TransformCache {
 
     const deleteOperations = Array.from(unusedKeys).map((key) => { return {key, type: 'del'} })
     await this._batch(deleteOperations)
+  }
+
+  _initialize () {
+    return new Promise((resolve, reject) => {
+      levelup(this.filePath, {}, (error, db) => {
+        if (error) {
+          reject(error)
+        } else {
+          this.db = db
+          resolve()
+        }
+      })
+    })
   }
 
   _put (key, value) {

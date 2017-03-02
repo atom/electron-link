@@ -13,9 +13,10 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
   test('simple integration test', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
+    const cachePath = temp.mkdirSync()
 
     {
-      const cache = new TransformCache(temp.mkdirSync())
+      const cache = new TransformCache(cachePath, 'invalidation-key')
       await cache.loadOrCreate()
       const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
@@ -27,11 +28,12 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       assert(!global.moduleInitialized)
       assert.equal(global.initialize(), 'abx/ybAd')
       assert(global.moduleInitialized)
-      assert.equal((await cache._allKeys()).size, 8)
+      assert.equal((await cache._allKeys()).size, 9)
+      await cache.dispose()
     }
 
     {
-      const cache = new TransformCache(temp.mkdirSync())
+      const cache = new TransformCache(cachePath, 'invalidation-key')
       await cache.loadOrCreate()
       await cache.put({
         filePath: mainPath,
@@ -47,14 +49,30 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       eval(snapshotScript)
       snapshotResult.setGlobals(global, process, {}, {}, require)
       assert.equal(global.initialize(), 'cached')
-      assert.equal((await cache._allKeys()).size, 2)
+      assert.equal((await cache._allKeys()).size, 3)
+      await cache.dispose()
+    }
+
+    {
+      const cache = new TransformCache(cachePath, 'a-new-invalidation-key')
+      await cache.loadOrCreate()
+      const snapshotScript = await generateSnapshotScript(cache, {
+        baseDirPath,
+        mainPath,
+        shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+      })
+      eval(snapshotScript)
+      snapshotResult.setGlobals(global, process, {}, {}, require)
+      assert.equal(global.initialize(), 'abx/ybAd')
+      assert.equal((await cache._allKeys()).size, 9)
+      await cache.dispose()
     }
   })
 
   test('process.platform', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-2', 'index.js')
-    const cache = new TransformCache(temp.mkdirSync())
+    const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
     await cache.loadOrCreate()
     const snapshotScript = await generateSnapshotScript(cache, {
       baseDirPath,
@@ -64,5 +82,6 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     eval(snapshotScript)
     snapshotResult.setGlobals(global, process, {}, {}, require)
     assert.deepEqual(global.module2, {platform: process.platform})
+    await cache.dispose()
   })
 })
