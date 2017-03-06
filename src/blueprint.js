@@ -36,22 +36,24 @@ var snapshotResult = (function () {
   let require = () => { throw new Error('To use Node require you need to call setGlobals on snapshotResult first!') }
 
   function customRequire (modulePath) {
-    if (!customRequire.cache[modulePath]) {
-      const module = {exports: {}}
+    let module = customRequire.cache[modulePath]
+    if (!module) {
+      module = {exports: {}}
       const dirname = modulePath.split('/').slice(0, -1).join('/')
 
       function define (callback) {
         callback(customRequire, module.exports, module)
       }
 
-      customRequire.cache[modulePath] = module
       if (customRequire.definitions.hasOwnProperty(modulePath)) {
+        customRequire.cache[modulePath] = module
         customRequire.definitions[modulePath].apply(module.exports, [module.exports, module, modulePath, dirname, customRequire, define])
       } else {
         module.exports = require(modulePath)
+        customRequire.cache[modulePath] = module
       }
     }
-    return customRequire.cache[modulePath].exports
+    return module.exports
   }
   customRequire.extensions = {}
   customRequire.cache = {}

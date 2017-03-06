@@ -1,4 +1,4 @@
 require('./a')
 require('./c')
 
-exports.value = 2
+exports.value = 'b'

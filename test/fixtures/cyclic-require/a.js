@@ -1,5 +1,5 @@
 const b = require('./b')
 
-module.exports = {a: 1, b: b.value}
-
-global.cyclicRequire = module.exports
+global.cyclicRequire = function () {
+  return {a: 'a', b: b.value, d: require('./d'), e: require('./e')}
+}

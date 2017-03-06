@@ -1,12 +1,20 @@
 const assert = require('assert')
 const fs = require('fs')
 const generateSnapshotScript = require('../../src/generate-snapshot-script')
+const Module = require('module')
 const path = require('path')
 const temp = require('temp').track()
 const TransformCache = require('../../src/transform-cache')
 
 suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
+  let previousRequire
+
+  beforeEach(() => {
+    previousRequire = Module.prototype.require
+  })
+
   afterEach(() => {
+    Module.prototype.require = previousRequire
     temp.cleanupSync()
   })
 
@@ -80,11 +88,33 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
-        shouldExcludeModule: () => false
+        shouldExcludeModule: (modulePath) => modulePath.endsWith('d.js') || modulePath.endsWith('e.js')
       })
       eval(snapshotScript)
+      const cachedRequires = []
+      const uncachedRequires = []
+      Module.prototype.require = function (module) {
+        if (module.includes('babel')) {
+          return previousRequire(module)
+        } else {
+          const absoluteFilePath = Module._resolveFilename(module, this, false)
+          const relativeFilePath = path.relative(mainPath, absoluteFilePath)
+          let cachedModule = snapshotResult.customRequire.cache[relativeFilePath]
+          if (cachedModule) {
+            cachedRequires.push(relativeFilePath)
+          } else {
+            uncachedRequires.push(relativeFilePath)
+            cachedModule = {exports: Module._load(module, this, false)}
+            snapshotResult.customRequire.cache[relativeFilePath] = cachedModule
+          }
+
+          return cachedModule.exports
+        }
+      }
       snapshotResult.setGlobals(global, process, {}, {}, require)
-      assert.deepEqual(global.cyclicRequire, {a: 1, b: 2})
+      assert.deepEqual(global.cyclicRequire(), {a: 'a', b: 'b', d: 'd', e: 'e'})
+      assert.deepEqual(uncachedRequires, ['../d.js', '../e.js', '../d.js'])
+      assert.deepEqual(cachedRequires, ['../e.js'])
       await cache.dispose()
     }
   })
