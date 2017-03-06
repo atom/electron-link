@@ -44,17 +44,14 @@ var snapshotResult = (function () {
         callback(customRequire, module.exports, module)
       }
 
+      customRequire.cache[modulePath] = module
       if (customRequire.definitions.hasOwnProperty(modulePath)) {
-        // Prevent cyclic requires by assigning an empty value to the cache before
-        // evaluating the module definition.
-        customRequire.cache[modulePath] = {}
         customRequire.definitions[modulePath].apply(module.exports, [module.exports, module, modulePath, dirname, customRequire, define])
       } else {
         module.exports = require(modulePath)
       }
-      customRequire.cache[modulePath] = module.exports
     }
-    return customRequire.cache[modulePath]
+    return customRequire.cache[modulePath].exports
   }
   customRequire.extensions = {}
   customRequire.cache = {}

@@ -69,6 +69,26 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     }
   })
 
+  test('cyclic requires', async () => {
+    const baseDirPath = __dirname
+    const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'cyclic-require', 'a.js')
+    const cachePath = temp.mkdirSync()
+
+    {
+      const cache = new TransformCache(cachePath, 'invalidation-key')
+      await cache.loadOrCreate()
+      const snapshotScript = await generateSnapshotScript(cache, {
+        baseDirPath,
+        mainPath,
+        shouldExcludeModule: () => false
+      })
+      eval(snapshotScript)
+      snapshotResult.setGlobals(global, process, {}, {}, require)
+      assert.deepEqual(global.cyclicRequire, {a: 1, b: 2})
+      await cache.dispose()
+    }
+  })
+
   test('process.platform', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-2', 'index.js')
