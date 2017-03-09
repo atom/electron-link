@@ -65,6 +65,7 @@ var snapshotResult = (function () {
   customRequire(mainModuleRequirePath)
   return {
     customRequire,
+    auxiliaryData: {},
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, nodeRequire) {
       for (let key of Object.keys(global)) {
         newGlobal[key] = global[key]

@@ -119,6 +119,31 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     }
   })
 
+  test('auxiliary data', async () => {
+    const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
+    await cache.loadOrCreate()
+    const auxiliaryData = {
+      a: 1,
+      b: '2',
+      c: [3, 4, 5],
+      d: {
+        e: 6,
+        f: [7],
+        g: null,
+        h: ''
+      }
+    }
+    const snapshotScript = await generateSnapshotScript(cache, {
+      baseDirPath: __dirname,
+      mainPath: path.resolve(__dirname, '..', 'fixtures', 'module-1', 'index.js'),
+      auxiliaryData,
+      shouldExcludeModule: (modulePath) => false
+    })
+    eval(snapshotScript)
+    assert.deepEqual(snapshotResult.auxiliaryData, auxiliaryData)
+    await cache.dispose()
+  })
+
   test('process.platform', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-2', 'index.js')
