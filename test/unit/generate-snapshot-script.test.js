@@ -140,7 +140,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       shouldExcludeModule: (modulePath) => false
     })
     eval(snapshotScript)
-    assert.deepEqual(snapshotResult.auxiliaryData, auxiliaryData)
+    assert.deepEqual(snapshotAuxiliaryData, auxiliaryData)
     await cache.dispose()
   })
 

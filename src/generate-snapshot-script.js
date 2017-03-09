@@ -92,16 +92,16 @@ module.exports = async function (cache, options) {
   const definitionsAssignmentEndIndex = definitionsAssignmentStartIndex + definitionsAssignment.length
   snapshotContent =
     snapshotContent.slice(0, definitionsAssignmentStartIndex) +
-    `customRequire.definitions = {\n${definitions}\n  }` +
+    `customRequire.definitions = {\n${definitions}\n  };` +
     snapshotContent.slice(definitionsAssignmentEndIndex)
 
   const auxiliaryData = JSON.stringify(options.auxiliaryData || {})
-  const auxiliaryDataAssignment = 'auxiliaryData: {}'
+  const auxiliaryDataAssignment = 'var snapshotAuxiliaryData = {}'
   const auxiliaryDataAssignmentStartIndex = snapshotContent.indexOf(auxiliaryDataAssignment)
   const auxiliaryDataAssignmentEndIndex = auxiliaryDataAssignmentStartIndex + auxiliaryDataAssignment.length
   snapshotContent =
     snapshotContent.slice(0, auxiliaryDataAssignmentStartIndex) +
-    `auxiliaryData: ${auxiliaryData}` +
+    `var snapshotAuxiliaryData = ${auxiliaryData};` +
     snapshotContent.slice(auxiliaryDataAssignmentEndIndex)
 
   return snapshotContent
