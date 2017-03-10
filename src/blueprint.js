@@ -37,6 +37,7 @@ var snapshotResult = (function () {
 
   let require = () => { throw new Error('To use Node require you need to call setGlobals on snapshotResult first!') }
 
+  const pathSeparator = null
   function customRequire (modulePath) {
     let module = customRequire.cache[modulePath]
     if (!module) {

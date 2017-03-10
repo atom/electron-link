@@ -72,6 +72,10 @@ module.exports = async function (cache, options) {
   // even while creating the snapshot.
   snapshotContent = snapshotContent.replace('processPlatform', process.platform)
 
+  // Assign the current platform's path separator so that custom require works
+  // correctly on both Windows and Unix systems.
+  snapshotContent = snapshotContent.replace('const pathSeparator = null', `const pathSeparator = ${JSON.stringify(path.sep)}`)
+
   // Replace `require.definitions = {}` with an assignment of the actual definitions
   // of all the modules.
   let definitions = ''
