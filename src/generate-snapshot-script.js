@@ -14,9 +14,9 @@ module.exports = async function (cache, options) {
   const requiredModulePaths = [options.mainPath]
   while (requiredModulePaths.length > 0) {
     const filePath = requiredModulePaths.shift()
-    let relativeFilePath = path.relative(options.baseDirPath, filePath)
+    let relativeFilePath = path.relative(options.baseDirPath, filePath).replace(/\\/g, '/')
     if (!relativeFilePath.startsWith('.')) {
-      relativeFilePath = '.' + path.sep + relativeFilePath
+      relativeFilePath = './' + relativeFilePath
     }
     if (!moduleASTs[relativeFilePath]) {
       const source = fs.readFileSync(filePath, 'utf8')
@@ -62,9 +62,9 @@ module.exports = async function (cache, options) {
   let snapshotContent = fs.readFileSync(path.join(__dirname, 'blueprint.js'), 'utf8')
 
   // Replace `require(main)` with a require of the relativized main module path.
-  let relativeFilePath = path.relative(options.baseDirPath, options.mainPath)
+  let relativeFilePath = path.relative(options.baseDirPath, options.mainPath).replace(/\\/g, '/')
   if (!relativeFilePath.startsWith('.')) {
-    relativeFilePath = '.' + path.sep + relativeFilePath
+    relativeFilePath = './' + relativeFilePath
   }
   snapshotContent = snapshotContent.replace('mainModuleRequirePath', JSON.stringify(relativeFilePath))
 

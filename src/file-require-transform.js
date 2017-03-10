@@ -41,9 +41,9 @@ module.exports = class FileRequireTransform {
           const moduleName = astPath.node.arguments[0].value
           const absoluteModulePath = self.resolveModulePath(moduleName)
           if (absoluteModulePath) {
-            let relativeModulePath = path.relative(self.options.baseDirPath, absoluteModulePath)
+            let relativeModulePath = path.relative(self.options.baseDirPath, absoluteModulePath).replace(/\\/g, '/')
             if (!relativeModulePath.startsWith('.')) {
-              relativeModulePath = '.' + path.sep + relativeModulePath
+              relativeModulePath = './' + relativeModulePath
             }
             astPath.get('arguments', 0).replace(b.literal(relativeModulePath))
           }
@@ -56,9 +56,9 @@ module.exports = class FileRequireTransform {
           const moduleName = astPath.node.arguments[0].value
           const absoluteModulePath = self.resolveModulePath(moduleName)
           if (absoluteModulePath) {
-            let relativeModulePath = path.relative(self.options.baseDirPath, absoluteModulePath)
+            let relativeModulePath = path.relative(self.options.baseDirPath, absoluteModulePath).replace(/\\/g, '/')
             if (!relativeModulePath.startsWith('.')) {
-              relativeModulePath = '.' + path.sep + relativeModulePath
+              relativeModulePath = './' + relativeModulePath
             }
             astPath.get('arguments', 0).replace(b.literal(relativeModulePath))
           }
