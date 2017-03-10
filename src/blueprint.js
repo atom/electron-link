@@ -42,7 +42,7 @@ var snapshotResult = (function () {
     let module = customRequire.cache[modulePath]
     if (!module) {
       module = {exports: {}}
-      const dirname = modulePath.split('/').slice(0, -1).join('/')
+      const dirname = modulePath.split(pathSeparator).slice(0, -1).join(pathSeparator)
 
       function define (callback) {
         callback(customRequire, module.exports, module)
