@@ -79,12 +79,12 @@ module.exports = async function (cache, options) {
   for (let i = 0; i < moduleFilePaths.length - 1; i++) {
     const filePath = moduleFilePaths[i]
     const source = moduleASTs[filePath]
-    definitions += indentString(`"${filePath}": ${source}`, ' ', 4) + ',\n'
+    definitions += indentString(`${JSON.stringify(filePath)}: ${source}`, ' ', 4) + ',\n'
   }
   if (moduleFilePaths.length > 0) {
     const filePath = moduleFilePaths[moduleFilePaths.length - 1]
     const source = moduleASTs[filePath]
-    definitions += indentString(`"${filePath}": ${source}`, ' ', 4)
+    definitions += indentString(`${JSON.stringify(filePath)}: ${source}`, ' ', 4)
   }
 
   const definitionsAssignment = 'customRequire.definitions = {}'
