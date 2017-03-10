@@ -16,7 +16,7 @@ module.exports = async function (cache, options) {
     const filePath = requiredModulePaths.shift()
     let relativeFilePath = path.relative(options.baseDirPath, filePath)
     if (!relativeFilePath.startsWith('.')) {
-      relativeFilePath = './' + relativeFilePath
+      relativeFilePath = '.' + path.sep + relativeFilePath
     }
     if (!moduleASTs[relativeFilePath]) {
       const source = fs.readFileSync(filePath, 'utf8')
@@ -64,9 +64,9 @@ module.exports = async function (cache, options) {
   // Replace `require(main)` with a require of the relativized main module path.
   let relativeFilePath = path.relative(options.baseDirPath, options.mainPath)
   if (!relativeFilePath.startsWith('.')) {
-    relativeFilePath = './' + relativeFilePath
+    relativeFilePath = '.' + path.sep + relativeFilePath
   }
-  snapshotContent = snapshotContent.replace('mainModuleRequirePath', `"${relativeFilePath}"`)
+  snapshotContent = snapshotContent.replace('mainModuleRequirePath', JSON.stringify(relativeFilePath))
 
   // Assign the current platform to `process.platform` so that it can be used
   // even while creating the snapshot.
