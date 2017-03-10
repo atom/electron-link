@@ -43,7 +43,7 @@ module.exports = class FileRequireTransform {
           if (absoluteModulePath) {
             let relativeModulePath = path.relative(self.options.baseDirPath, absoluteModulePath)
             if (!relativeModulePath.startsWith('.')) {
-              relativeModulePath = './' + relativeModulePath
+              relativeModulePath = '.' + path.sep + relativeModulePath
             }
             astPath.get('arguments', 0).replace(b.literal(relativeModulePath))
           }
@@ -58,7 +58,7 @@ module.exports = class FileRequireTransform {
           if (absoluteModulePath) {
             let relativeModulePath = path.relative(self.options.baseDirPath, absoluteModulePath)
             if (!relativeModulePath.startsWith('.')) {
-              relativeModulePath = './' + relativeModulePath
+              relativeModulePath = '.' + path.sep + relativeModulePath
             }
             astPath.get('arguments', 0).replace(b.literal(relativeModulePath))
           }
