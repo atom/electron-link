@@ -60,6 +60,7 @@ var snapshotResult = (function () {
   customRequire.extensions = {}
   customRequire.cache = {}
   customRequire.definitions = {}
+  customRequire.definitionsMetadata = []
   customRequire.resolve = function (mod) {
     return require.resolve(mod)
   }
@@ -89,6 +90,26 @@ var snapshotResult = (function () {
       document = newDocument
 
       require = nodeRequire
+    },
+    translateLineNumber: function (lineNumber) {
+      let low = 0
+      let high = customRequire.definitionsMetadata.length - 1
+      while (low <= high) {
+        const mid = low + (high - low >> 1)
+        const definitionMetadata = customRequire.definitionsMetadata[mid]
+        if (lineNumber < definitionMetadata.range.start) {
+          high = mid - 1
+        } else if (lineNumber > definitionMetadata.range.end) {
+          low = mid + 1
+        } else {
+          return {
+            filename: definitionMetadata.filename,
+            lineNumber: lineNumber - definitionMetadata.range.start
+          }
+        }
+      }
+
+      return {filename: '<embedded>', lineNumber: lineNumber}
     }
   }
 })()

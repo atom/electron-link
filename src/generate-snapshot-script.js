@@ -5,6 +5,8 @@ const path = require('path')
 const FileRequireTransform = require('./file-require-transform')
 const indentString = require('indent-string')
 
+const FUNCTION_HEADER = 'function (exports, module, __filename, __dirname, require, define)'
+
 module.exports = async function (cache, options) {
   // Phase 1: Starting at the main module, traverse all requires, transforming
   // all module references to paths relative to the base directory path and
@@ -50,7 +52,7 @@ module.exports = async function (cache, options) {
         await cache.put({filePath, original: source, transformed: transformedSource, requires: foundRequires})
       }
 
-      moduleASTs[relativeFilePath] = `function (exports, module, __filename, __dirname, require, define) {\n${transformedSource}\n}`
+      moduleASTs[relativeFilePath] = `${FUNCTION_HEADER} {\n${transformedSource}\n}`
       requiredModulePaths.push(...foundRequires.map(r => r.resolvedPath))
     }
   }
@@ -107,6 +109,45 @@ module.exports = async function (cache, options) {
     snapshotContent.slice(0, auxiliaryDataAssignmentStartIndex) +
     `var snapshotAuxiliaryData = ${auxiliaryData};` +
     snapshotContent.slice(auxiliaryDataAssignmentEndIndex)
+
+  // Create definitions metadata as the last step of this routine. This data
+  // will be used to convert an absolute line number in the generated snapshot
+  // script to the line number relative to the file whose contents have been
+  // snapshotted.
+  const definitionsMetadata = []
+  const snapshotContentLines = snapshotContent.split('\n')
+  let insideCustomRequireDefinitions = false
+  let currentFileName = null
+  let currentFileLineNumberStart = null
+  for (let i = 0; i < snapshotContentLines.length; i++) {
+    const snapshotContentLine = snapshotContentLines[i]
+    if (snapshotContentLine === '  customRequire.definitions = {') {
+      insideCustomRequireDefinitions = true
+    } else if (insideCustomRequireDefinitions) {
+      if (snapshotContentLine === '  };') {
+        break
+      } else if (snapshotContentLine.startsWith('    "')) {
+        currentFileName = snapshotContentLine.slice(5, -(FUNCTION_HEADER.length + 5))
+        currentFileLineNumberStart = i + 1
+      } else if (currentFileName && snapshotContentLine.startsWith('    }')) {
+        const currentFileLineNumberEnd = i + 1
+        definitionsMetadata.push({
+          filename: currentFileName,
+          range: {start: currentFileLineNumberStart, end: currentFileLineNumberEnd}
+        })
+        currentFileName = null
+        currentFileLineNumberStart = null
+      }
+    }
+  }
+
+  const definitionsMetadataAssignment = 'customRequire.definitionsMetadata = []'
+  const definitionsMetadataAssignmentStartIndex = snapshotContent.indexOf(definitionsMetadataAssignment)
+  const definitionsMetadataAssignmentEndIndex = definitionsMetadataAssignmentStartIndex + definitionsMetadataAssignment.length
+  snapshotContent =
+    snapshotContent.slice(0, definitionsMetadataAssignmentStartIndex) +
+    `customRequire.definitionsMetadata = ${JSON.stringify(definitionsMetadata)}` +
+    snapshotContent.slice(definitionsMetadataAssignmentEndIndex)
 
   return snapshotContent
 }

@@ -159,4 +159,28 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     assert.deepEqual(global.module2, {platform: process.platform})
     await cache.dispose()
   })
+
+  test('line numbers translation', async () => {
+    const baseDirPath = __dirname
+    const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
+    const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
+    await cache.loadOrCreate()
+    const snapshotScript = await generateSnapshotScript(cache, {
+      baseDirPath,
+      mainPath,
+      shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+    })
+    eval(snapshotScript)
+    snapshotResult.setGlobals(global, process, {}, {}, require)
+
+    assert.deepEqual(snapshotResult.translateLineNumber(10), {filename: '<embedded>', lineNumber: 10})
+    assert.deepEqual(snapshotResult.translateLineNumber(63), {filename: '../fixtures/module-1/index.js', lineNumber: 0})
+    assert.deepEqual(snapshotResult.translateLineNumber(70), {filename: '../fixtures/module-1/index.js', lineNumber: 7})
+    assert.deepEqual(snapshotResult.translateLineNumber(93), {filename: '../fixtures/module-1/dir/c.json', lineNumber: 2})
+    assert.deepEqual(snapshotResult.translateLineNumber(95), {filename: '../fixtures/module-1/node_modules/a/index.js', lineNumber: 0})
+    assert.deepEqual(snapshotResult.translateLineNumber(96), {filename: '../fixtures/module-1/node_modules/a/index.js', lineNumber: 1})
+    assert.deepEqual(snapshotResult.translateLineNumber(99), {filename: '<embedded>', lineNumber: 99})
+
+    await cache.dispose()
+  })
 })
