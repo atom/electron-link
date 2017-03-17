@@ -27,7 +27,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     {
       const cache = new TransformCache(cachePath, 'invalidation-key')
       await cache.loadOrCreate()
-      const {snapshotScript} = await generateSnapshotScript(cache, {
+      const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
@@ -50,7 +50,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         transformed: 'global.initialize = () => "cached"',
         requires: []
       })
-      const {snapshotScript} = await generateSnapshotScript(cache, {
+      const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
@@ -65,7 +65,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     {
       const cache = new TransformCache(cachePath, 'a-new-invalidation-key')
       await cache.loadOrCreate()
-      const {snapshotScript} = await generateSnapshotScript(cache, {
+      const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
@@ -86,7 +86,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     {
       const cache = new TransformCache(cachePath, 'invalidation-key')
       await cache.loadOrCreate()
-      const {snapshotScript} = await generateSnapshotScript(cache, {
+      const snapshotScript = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('d.js') || modulePath.endsWith('e.js')
@@ -134,7 +134,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         h: ''
       }
     }
-    const {snapshotScript} = await generateSnapshotScript(cache, {
+    const snapshotScript = await generateSnapshotScript(cache, {
       baseDirPath: __dirname,
       mainPath: path.resolve(__dirname, '..', 'fixtures', 'module-1', 'index.js'),
       auxiliaryData,
@@ -150,7 +150,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-2', 'index.js')
     const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
     await cache.loadOrCreate()
-    const {snapshotScript} = await generateSnapshotScript(cache, {
+    const snapshotScript = await generateSnapshotScript(cache, {
       baseDirPath,
       mainPath,
       shouldExcludeModule: () => false
@@ -166,13 +166,14 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
     const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
     await cache.loadOrCreate()
-    const {snapshotScript, sourceMap} = await generateSnapshotScript(cache, {
+    const snapshotScript = await generateSnapshotScript(cache, {
       baseDirPath,
       mainPath,
       shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
     })
+    eval(snapshotScript)
 
-    const sourceMapConsumer = new SourceMapConsumer(sourceMap)
+    const sourceMapConsumer = new SourceMapConsumer(snapshotResult.sourceMap)
     const mappings = [
       [10, {source: '<embedded>', line: 10}],
       [63, {source: '<embedded>', line: 63}],

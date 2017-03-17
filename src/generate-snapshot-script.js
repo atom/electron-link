@@ -111,10 +111,7 @@ module.exports = async function (cache, options) {
     `var snapshotAuxiliaryData = ${auxiliaryData};` +
     snapshotScript.slice(auxiliaryDataAssignmentEndIndex)
 
-  // Create definitions metadata as the last step of this routine. This data
-  // will be used to convert an absolute line number in the generated snapshot
-  // script to the line number relative to the file whose contents have been
-  // snapshotted.
+  // Generate source maps as the last step of this routine.
   const sourceMapGenerator = new SourceMapGenerator()
   const snapshotScriptLines = snapshotScript.split('\n')
   let insideCustomRequireDefinitions = false
@@ -168,5 +165,13 @@ module.exports = async function (cache, options) {
     }
   }
 
-  return {snapshotScript, sourceMap: sourceMapGenerator.toString()}
+  const sourceMapAssignment = 'sourceMap: {}'
+  const sourceMapAssignmentStartIndex = snapshotScript.indexOf(sourceMapAssignment)
+  const sourceMapAssignmentEndIndex = sourceMapAssignmentStartIndex + sourceMapAssignment.length
+  snapshotScript =
+    snapshotScript.slice(0, sourceMapAssignmentStartIndex) +
+    `sourceMap: ${sourceMapGenerator.toString()}` +
+    snapshotScript.slice(sourceMapAssignmentEndIndex)
+
+  return snapshotScript
 }
