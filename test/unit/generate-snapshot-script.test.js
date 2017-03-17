@@ -5,6 +5,7 @@ const Module = require('module')
 const path = require('path')
 const temp = require('temp').track()
 const TransformCache = require('../../src/transform-cache')
+const {SourceMapConsumer} = require('source-map')
 
 suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
   let previousRequire
@@ -26,7 +27,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     {
       const cache = new TransformCache(cachePath, 'invalidation-key')
       await cache.loadOrCreate()
-      const snapshotScript = await generateSnapshotScript(cache, {
+      const {snapshotScript} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
@@ -49,7 +50,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         transformed: 'global.initialize = () => "cached"',
         requires: []
       })
-      const snapshotScript = await generateSnapshotScript(cache, {
+      const {snapshotScript} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
@@ -64,7 +65,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     {
       const cache = new TransformCache(cachePath, 'a-new-invalidation-key')
       await cache.loadOrCreate()
-      const snapshotScript = await generateSnapshotScript(cache, {
+      const {snapshotScript} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
@@ -85,7 +86,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     {
       const cache = new TransformCache(cachePath, 'invalidation-key')
       await cache.loadOrCreate()
-      const snapshotScript = await generateSnapshotScript(cache, {
+      const {snapshotScript} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
         shouldExcludeModule: (modulePath) => modulePath.endsWith('d.js') || modulePath.endsWith('e.js')
@@ -133,7 +134,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         h: ''
       }
     }
-    const snapshotScript = await generateSnapshotScript(cache, {
+    const {snapshotScript} = await generateSnapshotScript(cache, {
       baseDirPath: __dirname,
       mainPath: path.resolve(__dirname, '..', 'fixtures', 'module-1', 'index.js'),
       auxiliaryData,
@@ -149,7 +150,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-2', 'index.js')
     const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
     await cache.loadOrCreate()
-    const snapshotScript = await generateSnapshotScript(cache, {
+    const {snapshotScript} = await generateSnapshotScript(cache, {
       baseDirPath,
       mainPath,
       shouldExcludeModule: () => false
@@ -160,26 +161,34 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     await cache.dispose()
   })
 
-  test('line numbers translation', async () => {
+  test('source map generation', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
     const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
     await cache.loadOrCreate()
-    const snapshotScript = await generateSnapshotScript(cache, {
+    const {snapshotScript, sourceMap} = await generateSnapshotScript(cache, {
       baseDirPath,
       mainPath,
       shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
     })
-    eval(snapshotScript)
-    snapshotResult.setGlobals(global, process, {}, {}, require)
 
-    assert.deepEqual(snapshotResult.translateLineNumber(10), {filename: '<embedded>', lineNumber: 10})
-    assert.deepEqual(snapshotResult.translateLineNumber(63), {filename: '../fixtures/module-1/index.js', lineNumber: 0})
-    assert.deepEqual(snapshotResult.translateLineNumber(70), {filename: '../fixtures/module-1/index.js', lineNumber: 7})
-    assert.deepEqual(snapshotResult.translateLineNumber(93), {filename: '../fixtures/module-1/dir/c.json', lineNumber: 2})
-    assert.deepEqual(snapshotResult.translateLineNumber(95), {filename: '../fixtures/module-1/node_modules/a/index.js', lineNumber: 0})
-    assert.deepEqual(snapshotResult.translateLineNumber(96), {filename: '../fixtures/module-1/node_modules/a/index.js', lineNumber: 1})
-    assert.deepEqual(snapshotResult.translateLineNumber(99), {filename: '<embedded>', lineNumber: 99})
+    const sourceMapConsumer = new SourceMapConsumer(sourceMap)
+    const mappings = [
+      [10, {source: '<embedded>', line: 10}],
+      [63, {source: '<embedded>', line: 63}],
+      [64, {source: '../fixtures/module-1/index.js', line: 1}],
+      [70, {source: '../fixtures/module-1/index.js', line: 7}],
+      [93, {source: '../fixtures/module-1/dir/c.json', line: 2}],
+      [95, {source: '<embedded>', line: 95}],
+      [96, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
+      [99, {source: '<embedded>', line: 99}]
+    ]
+    for (const mapping of mappings) {
+      const snapshotPosition = {line: mapping[0], column: 0}
+      const filePosition = {source: mapping[1].source, line: mapping[1].line, column: 0, name: null}
+      assert.deepEqual(sourceMapConsumer.originalPositionFor(snapshotPosition), filePosition)
+      assert.deepEqual(sourceMapConsumer.generatedPositionFor(filePosition), Object.assign(snapshotPosition, {lastColumn: null}))
+    }
 
     await cache.dispose()
   })

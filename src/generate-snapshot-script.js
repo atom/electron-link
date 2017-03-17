@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const FileRequireTransform = require('./file-require-transform')
 const indentString = require('indent-string')
+const {SourceMapGenerator} = require('source-map')
 
 const FUNCTION_HEADER = 'function (exports, module, __filename, __dirname, require, define)'
 
@@ -61,22 +62,22 @@ module.exports = async function (cache, options) {
 
   // Phase 2: Now use the data we gathered during phase 1 to build a snapshot
   // script based on `./blueprint.js`.
-  let snapshotContent = fs.readFileSync(path.join(__dirname, 'blueprint.js'), 'utf8')
+  let snapshotScript = fs.readFileSync(path.join(__dirname, 'blueprint.js'), 'utf8')
 
   // Replace `require(main)` with a require of the relativized main module path.
   let relativeFilePath = path.relative(options.baseDirPath, options.mainPath).replace(/\\/g, '/')
   if (!relativeFilePath.startsWith('.')) {
     relativeFilePath = './' + relativeFilePath
   }
-  snapshotContent = snapshotContent.replace('mainModuleRequirePath', JSON.stringify(relativeFilePath))
+  snapshotScript = snapshotScript.replace('mainModuleRequirePath', JSON.stringify(relativeFilePath))
 
   // Assign the current platform to `process.platform` so that it can be used
   // even while creating the snapshot.
-  snapshotContent = snapshotContent.replace('processPlatform', process.platform)
+  snapshotScript = snapshotScript.replace('processPlatform', process.platform)
 
   // Assign the current platform's path separator so that custom require works
   // correctly on both Windows and Unix systems.
-  snapshotContent = snapshotContent.replace('const pathSeparator = null', `const pathSeparator = ${JSON.stringify(path.sep)}`)
+  snapshotScript = snapshotScript.replace('const pathSeparator = null', `const pathSeparator = ${JSON.stringify(path.sep)}`)
 
   // Replace `require.definitions = {}` with an assignment of the actual definitions
   // of all the modules.
@@ -94,60 +95,78 @@ module.exports = async function (cache, options) {
   }
 
   const definitionsAssignment = 'customRequire.definitions = {}'
-  const definitionsAssignmentStartIndex = snapshotContent.indexOf(definitionsAssignment)
+  const definitionsAssignmentStartIndex = snapshotScript.indexOf(definitionsAssignment)
   const definitionsAssignmentEndIndex = definitionsAssignmentStartIndex + definitionsAssignment.length
-  snapshotContent =
-    snapshotContent.slice(0, definitionsAssignmentStartIndex) +
+  snapshotScript =
+    snapshotScript.slice(0, definitionsAssignmentStartIndex) +
     `customRequire.definitions = {\n${definitions}\n  };` +
-    snapshotContent.slice(definitionsAssignmentEndIndex)
+    snapshotScript.slice(definitionsAssignmentEndIndex)
 
   const auxiliaryData = JSON.stringify(options.auxiliaryData || {})
   const auxiliaryDataAssignment = 'var snapshotAuxiliaryData = {}'
-  const auxiliaryDataAssignmentStartIndex = snapshotContent.indexOf(auxiliaryDataAssignment)
+  const auxiliaryDataAssignmentStartIndex = snapshotScript.indexOf(auxiliaryDataAssignment)
   const auxiliaryDataAssignmentEndIndex = auxiliaryDataAssignmentStartIndex + auxiliaryDataAssignment.length
-  snapshotContent =
-    snapshotContent.slice(0, auxiliaryDataAssignmentStartIndex) +
+  snapshotScript =
+    snapshotScript.slice(0, auxiliaryDataAssignmentStartIndex) +
     `var snapshotAuxiliaryData = ${auxiliaryData};` +
-    snapshotContent.slice(auxiliaryDataAssignmentEndIndex)
+    snapshotScript.slice(auxiliaryDataAssignmentEndIndex)
 
   // Create definitions metadata as the last step of this routine. This data
   // will be used to convert an absolute line number in the generated snapshot
   // script to the line number relative to the file whose contents have been
   // snapshotted.
-  const definitionsMetadata = []
-  const snapshotContentLines = snapshotContent.split('\n')
+  const sourceMapGenerator = new SourceMapGenerator()
+  const snapshotScriptLines = snapshotScript.split('\n')
   let insideCustomRequireDefinitions = false
   let currentFileName = null
-  let currentFileLineNumberStart = null
-  for (let i = 0; i < snapshotContentLines.length; i++) {
-    const snapshotContentLine = snapshotContentLines[i]
+  let currentFileRelativeLineNumber = null
+
+  for (let i = 0; i < snapshotScriptLines.length; i++) {
+    const snapshotAbsoluteLineNumber = i + 1
+    const snapshotContentLine = snapshotScriptLines[i]
     if (snapshotContentLine === '  customRequire.definitions = {') {
       insideCustomRequireDefinitions = true
+      sourceMapGenerator.addMapping({
+        source: '<embedded>',
+        original: {line: snapshotAbsoluteLineNumber, column: 0},
+        generated: {line: snapshotAbsoluteLineNumber, column: 0}
+      })
     } else if (insideCustomRequireDefinitions) {
       if (snapshotContentLine === '  };') {
-        break
+        insideCustomRequireDefinitions = false
+        sourceMapGenerator.addMapping({
+          source: '<embedded>',
+          original: {line: snapshotAbsoluteLineNumber, column: 0},
+          generated: {line: snapshotAbsoluteLineNumber, column: 0}
+        })
       } else if (snapshotContentLine.startsWith('    "')) {
         currentFileName = snapshotContentLine.slice(5, -(FUNCTION_HEADER.length + 5))
-        currentFileLineNumberStart = i + 1
-      } else if (currentFileName && snapshotContentLine.startsWith('    }')) {
-        const currentFileLineNumberEnd = i + 1
-        definitionsMetadata.push({
-          filename: currentFileName,
-          range: {start: currentFileLineNumberStart, end: currentFileLineNumberEnd}
+        currentFileRelativeLineNumber = 1
+        sourceMapGenerator.addMapping({
+          source: '<embedded>',
+          original: {line: snapshotAbsoluteLineNumber, column: 0},
+          generated: {line: snapshotAbsoluteLineNumber, column: 0}
         })
-        currentFileName = null
-        currentFileLineNumberStart = null
+      } else if (currentFileName) {
+        sourceMapGenerator.addMapping({
+          source: currentFileName,
+          original: {line: currentFileRelativeLineNumber++, column: 0},
+          generated: {line: snapshotAbsoluteLineNumber, column: 0}
+        })
+
+        if (snapshotContentLine.startsWith('    }')) {
+          currentFileName = null
+          currentFileRelativeLineNumber = null
+        }
       }
+    } else {
+      sourceMapGenerator.addMapping({
+        source: '<embedded>',
+        original: {line: snapshotAbsoluteLineNumber, column: 0},
+        generated: {line: snapshotAbsoluteLineNumber, column: 0}
+      })
     }
   }
 
-  const definitionsMetadataAssignment = 'customRequire.definitionsMetadata = []'
-  const definitionsMetadataAssignmentStartIndex = snapshotContent.indexOf(definitionsMetadataAssignment)
-  const definitionsMetadataAssignmentEndIndex = definitionsMetadataAssignmentStartIndex + definitionsMetadataAssignment.length
-  snapshotContent =
-    snapshotContent.slice(0, definitionsMetadataAssignmentStartIndex) +
-    `customRequire.definitionsMetadata = ${JSON.stringify(definitionsMetadata)}` +
-    snapshotContent.slice(definitionsMetadataAssignmentEndIndex)
-
-  return snapshotContent
+  return {snapshotScript, sourceMap: sourceMapGenerator.toString()}
 }
