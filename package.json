@@ -1,6 +1,6 @@
 {
   "name": "electron-link",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Generates scripts to pass to V8's `mksnapshot` tool.",
   "main": "lib/index.js",
   "scripts": {
