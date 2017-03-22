@@ -176,13 +176,13 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     const sourceMapConsumer = new SourceMapConsumer(snapshotResult.sourceMap)
     const mappings = [
       [10, {source: '<embedded>', line: 10}],
-      [63, {source: '<embedded>', line: 63}],
-      [64, {source: '../fixtures/module-1/index.js', line: 1}],
-      [70, {source: '../fixtures/module-1/index.js', line: 7}],
-      [93, {source: '../fixtures/module-1/dir/c.json', line: 2}],
-      [95, {source: '<embedded>', line: 95}],
-      [96, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
-      [99, {source: '<embedded>', line: 99}]
+      [68, {source: '<embedded>', line: 68}],
+      [69, {source: '../fixtures/module-1/index.js', line: 1}],
+      [75, {source: '../fixtures/module-1/index.js', line: 7}],
+      [98, {source: '../fixtures/module-1/dir/c.json', line: 2}],
+      [100, {source: '<embedded>', line: 100}],
+      [101, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
+      [104, {source: '<embedded>', line: 104}]
     ]
     for (const mapping of mappings) {
       const snapshotPosition = {line: mapping[0], column: 0}
