@@ -117,7 +117,7 @@ suite('FileRequireTransform', () => {
         const f = b.f
         function main () {
           get_c().qux()
-          console.log(get_d())
+          get_console().log(get_d())
           get_e()()
         }
     `)
@@ -233,18 +233,18 @@ suite('FileRequireTransform', () => {
         }
 
         function outer () {
-          console.log(a)
+          get_console().log(a)
           function inner () {
-            console.log(a)
+            get_console().log(a)
           }
           let a = []
         }
 
         function other () {
-          console.log(get_a())
+          get_console().log(get_a())
           function inner () {
             let a = []
-            console.log(a)
+            get_console().log(a)
           }
         }
       `

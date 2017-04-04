@@ -33,7 +33,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
       })
       eval(snapshotScript)
-      snapshotResult.setGlobals(global, process, {}, {}, require)
+      snapshotResult.setGlobals(global, process, {}, {}, console, require)
       assert(!global.moduleInitialized)
       assert.equal(global.initialize(), 'abx/ybAd')
       assert(global.moduleInitialized)
@@ -56,7 +56,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
       })
       eval(snapshotScript)
-      snapshotResult.setGlobals(global, process, {}, {}, require)
+      snapshotResult.setGlobals(global, process, {}, {}, console, require)
       assert.equal(global.initialize(), 'cached')
       assert.equal((await cache._allKeys()).size, 3)
       await cache.dispose()
@@ -71,7 +71,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
         shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
       })
       eval(snapshotScript)
-      snapshotResult.setGlobals(global, process, {}, {}, require)
+      snapshotResult.setGlobals(global, process, {}, {}, console, require)
       assert.equal(global.initialize(), 'abx/ybAd')
       assert.equal((await cache._allKeys()).size, 9)
       await cache.dispose()
@@ -112,7 +112,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
           return cachedModule.exports
         }
       }
-      snapshotResult.setGlobals(global, process, {}, {}, require)
+      snapshotResult.setGlobals(global, process, {}, {}, console, require)
       assert.deepEqual(global.cyclicRequire(), {a: 'a', b: 'b', d: 'd', e: 'e'})
       assert.deepEqual(uncachedRequires, ['../d.js', '../e.js', '../d.js'])
       assert.deepEqual(cachedRequires, ['../e.js'])
@@ -156,7 +156,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       shouldExcludeModule: () => false
     })
     eval(snapshotScript)
-    snapshotResult.setGlobals(global, process, {}, {}, require)
+    snapshotResult.setGlobals(global, process, {}, {}, console, require)
     assert.deepEqual(global.module2, {platform: process.platform})
     await cache.dispose()
   })
@@ -176,13 +176,13 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     const sourceMapConsumer = new SourceMapConsumer(snapshotResult.sourceMap)
     const mappings = [
       [10, {source: '<embedded>', line: 10}],
-      [68, {source: '<embedded>', line: 68}],
-      [69, {source: '../fixtures/module-1/index.js', line: 1}],
-      [75, {source: '../fixtures/module-1/index.js', line: 7}],
-      [98, {source: '../fixtures/module-1/dir/c.json', line: 2}],
-      [100, {source: '<embedded>', line: 100}],
-      [101, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
-      [104, {source: '<embedded>', line: 104}]
+      [85, {source: '<embedded>', line: 85}],
+      [86, {source: '../fixtures/module-1/index.js', line: 1}],
+      [92, {source: '../fixtures/module-1/index.js', line: 7}],
+      [115, {source: '../fixtures/module-1/dir/c.json', line: 2}],
+      [117, {source: '<embedded>', line: 117}],
+      [118, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
+      [121, {source: '<embedded>', line: 121}]
     ]
     for (const mapping of mappings) {
       const snapshotPosition = {line: mapping[0], column: 0}

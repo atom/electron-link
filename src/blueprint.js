@@ -35,6 +35,23 @@ var snapshotResult = (function () {
     return window
   }
 
+  let console = {}
+  function consoleNoop () {
+    throw new Error('Cannot use `console` functions in the snapshot.')
+  }
+  Object.defineProperties(console, {
+    'debug': {value: consoleNoop, enumerable: false},
+    'error': {value: consoleNoop, enumerable: false},
+    'info': {value: consoleNoop, enumerable: false},
+    'log': {value: consoleNoop, enumerable: false},
+    'warn': {value: consoleNoop, enumerable: false},
+    'time': {value: consoleNoop, enumerable: false},
+    'timeEnd': {value: consoleNoop, enumerable: false}
+  })
+  function get_console () {
+    return console
+  }
+
   let require = (moduleName) => {
     throw new Error(
       `Cannot require module "${moduleName}".\n` +
@@ -73,7 +90,7 @@ var snapshotResult = (function () {
   return {
     customRequire,
     sourceMap: {},
-    setGlobals: function (newGlobal, newProcess, newWindow, newDocument, nodeRequire) {
+    setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
       for (let key of Object.keys(global)) {
         newGlobal[key] = global[key]
       }
@@ -93,6 +110,11 @@ var snapshotResult = (function () {
         newDocument[key] = document[key]
       }
       document = newDocument
+
+      for (let key of Object.keys(console)) {
+        newConsole[key] = console[key]
+      }
+      console = newConsole
 
       require = nodeRequire
     }
