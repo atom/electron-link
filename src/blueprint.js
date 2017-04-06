@@ -11,7 +11,27 @@ var snapshotResult = (function () {
     return process
   }
 
+  function createElement(_type) {
+    return {
+      innerHTML: '',
+      style: {}
+    }
+  }
+
+  let documentElement = {
+    textContent: '',
+    style: {
+      cssFloat: ''
+    }
+  }
   let document = {}
+  Object.defineProperties(document, {
+    'createElement': {value: createElement, enumerable: false},
+    'addEventListener': {value: function() {}, enumerable: false},
+    'documentElement': {value: documentElement, enumerable: false},
+    'oninput': {value: {}, enumerable: false},
+    'onchange': {value: {}, enumerable: false}
+  })
   function get_document () {
     return document
   }
@@ -30,7 +50,9 @@ var snapshotResult = (function () {
   let window = {}
   Object.defineProperties(window, {
     'document': {value: document, enumerable: false},
-    'location': {value: {href: ''}, enumerable: false}
+    'location': {value: {href: ''}, enumerable: false},
+    'addEventListener': {value: function(){}, enumerable: false},
+    'screen': {value: {}, enumerable: false},
   })
   function get_window () {
     return window
