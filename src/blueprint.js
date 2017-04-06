@@ -20,7 +20,8 @@ var snapshotResult = (function () {
   Object.defineProperties(global, {
     'document': {value: document, enumerable: false},
     'process': {value: process, enumerable: false},
-    'WeakMap': {value: WeakMap, enumerable: false}
+    'WeakMap': {value: WeakMap, enumerable: false},
+    'isGeneratingSnapshot': {value: true, enumerable: false}
   })
   function get_global () {
     return global
