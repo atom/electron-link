@@ -5,7 +5,7 @@ var snapshotResult = (function () {
   Object.defineProperties(process, {
     'platform': {value: 'processPlatform', enumerable: false},
     'argv': {value: [], enumerable: false},
-    'env': {value: {}, enumerable: false}
+    'env': {value: {'NODE_ENV': 'production'}, enumerable: false}
   })
   function get_process () {
     return process
