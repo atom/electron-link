@@ -1,6 +1,6 @@
 var snapshotAuxiliaryData = {}
 
-var snapshotResult = (function () {
+function generateSnapshot () {
   let process = {}
   Object.defineProperties(process, {
     'platform': {value: 'processPlatform', enumerable: false},
@@ -112,7 +112,6 @@ var snapshotResult = (function () {
   customRequire(mainModuleRequirePath)
   return {
     customRequire,
-    sourceMap: {},
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
       for (let key of Object.keys(global)) {
         newGlobal[key] = global[key]
@@ -142,4 +141,7 @@ var snapshotResult = (function () {
       require = nodeRequire
     }
   }
-})()
+}
+
+snapshotAuxiliaryData.sourceMap = {}
+var snapshotResult = generateSnapshot()

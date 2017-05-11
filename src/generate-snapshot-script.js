@@ -165,12 +165,12 @@ module.exports = async function (cache, options) {
     }
   }
 
-  const sourceMapAssignment = 'sourceMap: {}'
+  const sourceMapAssignment = 'snapshotAuxiliaryData.sourceMap = {}'
   const sourceMapAssignmentStartIndex = snapshotScript.indexOf(sourceMapAssignment)
   const sourceMapAssignmentEndIndex = sourceMapAssignmentStartIndex + sourceMapAssignment.length
   snapshotScript =
     snapshotScript.slice(0, sourceMapAssignmentStartIndex) +
-    `sourceMap: ${sourceMapGenerator.toString()}` +
+    `snapshotAuxiliaryData.sourceMap = ${sourceMapGenerator.toString()}` +
     snapshotScript.slice(sourceMapAssignmentEndIndex)
 
   return snapshotScript

@@ -141,6 +141,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       shouldExcludeModule: (modulePath) => false
     })
     eval(snapshotScript)
+    delete snapshotAuxiliaryData.sourceMap
     assert.deepEqual(snapshotAuxiliaryData, auxiliaryData)
     await cache.dispose()
   })
@@ -173,16 +174,16 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     })
     eval(snapshotScript)
 
-    const sourceMapConsumer = new SourceMapConsumer(snapshotResult.sourceMap)
+    const sourceMapConsumer = new SourceMapConsumer(snapshotAuxiliaryData.sourceMap)
     const mappings = [
       [10, {source: '<embedded>', line: 10}],
       [85, {source: '<embedded>', line: 85}],
-      [86, {source: '../fixtures/module-1/index.js', line: 1}],
-      [92, {source: '../fixtures/module-1/index.js', line: 7}],
-      [115, {source: '../fixtures/module-1/dir/c.json', line: 2}],
-      [117, {source: '<embedded>', line: 117}],
-      [118, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
-      [121, {source: '<embedded>', line: 121}]
+      [109, {source: '../fixtures/module-1/index.js', line: 1}],
+      [115, {source: '../fixtures/module-1/index.js', line: 7}],
+      [138, {source: '../fixtures/module-1/dir/c.json', line: 2}],
+      [140, {source: '<embedded>', line: 140}],
+      [141, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
+      [144, {source: '<embedded>', line: 144}]
     ]
     for (const mapping of mappings) {
       const snapshotPosition = {line: mapping[0], column: 0}
