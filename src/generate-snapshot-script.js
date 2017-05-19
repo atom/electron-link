@@ -6,8 +6,6 @@ const FileRequireTransform = require('./file-require-transform')
 const indentString = require('indent-string')
 const {SourceMapGenerator} = require('source-map')
 
-const FUNCTION_HEADER = 'function (exports, module, __filename, __dirname, require, define)'
-
 module.exports = async function (cache, options) {
   // Phase 1: Starting at the main module, traverse all requires, transforming
   // all module references to paths relative to the base directory path and
@@ -53,7 +51,7 @@ module.exports = async function (cache, options) {
         await cache.put({filePath, original: source, transformed: transformedSource, requires: foundRequires})
       }
 
-      moduleASTs[relativeFilePath] = `${FUNCTION_HEADER} {\n${transformedSource}\n}`
+      moduleASTs[relativeFilePath] = `function (exports, module, __filename, __dirname, require, define) {\n${transformedSource}\n}`
       requiredModulePaths.push(...foundRequires.map(r => r.resolvedPath))
     }
   }
@@ -79,29 +77,6 @@ module.exports = async function (cache, options) {
   // correctly on both Windows and Unix systems.
   snapshotScript = snapshotScript.replace('const pathSeparator = null', `const pathSeparator = ${JSON.stringify(path.sep)}`)
 
-  // Replace `require.definitions = {}` with an assignment of the actual definitions
-  // of all the modules.
-  let definitions = ''
-  const moduleFilePaths = Object.keys(moduleASTs)
-  for (let i = 0; i < moduleFilePaths.length - 1; i++) {
-    const filePath = moduleFilePaths[i]
-    const source = moduleASTs[filePath]
-    definitions += indentString(`${JSON.stringify(filePath)}: ${source}`, ' ', 4) + ',\n'
-  }
-  if (moduleFilePaths.length > 0) {
-    const filePath = moduleFilePaths[moduleFilePaths.length - 1]
-    const source = moduleASTs[filePath]
-    definitions += indentString(`${JSON.stringify(filePath)}: ${source}`, ' ', 4)
-  }
-
-  const definitionsAssignment = 'customRequire.definitions = {}'
-  const definitionsAssignmentStartIndex = snapshotScript.indexOf(definitionsAssignment)
-  const definitionsAssignmentEndIndex = definitionsAssignmentStartIndex + definitionsAssignment.length
-  snapshotScript =
-    snapshotScript.slice(0, definitionsAssignmentStartIndex) +
-    `customRequire.definitions = {\n${definitions}\n  };` +
-    snapshotScript.slice(definitionsAssignmentEndIndex)
-
   const auxiliaryData = JSON.stringify(options.auxiliaryData || {})
   const auxiliaryDataAssignment = 'var snapshotAuxiliaryData = {}'
   const auxiliaryDataAssignmentStartIndex = snapshotScript.indexOf(auxiliaryDataAssignment)
@@ -111,67 +86,47 @@ module.exports = async function (cache, options) {
     `var snapshotAuxiliaryData = ${auxiliaryData};` +
     snapshotScript.slice(auxiliaryDataAssignmentEndIndex)
 
-  // Generate source maps as the last step of this routine.
-  const sourceMapGenerator = new SourceMapGenerator()
-  const snapshotScriptLines = snapshotScript.split('\n')
-  let insideCustomRequireDefinitions = false
-  let currentFileName = null
-  let currentFileRelativeLineNumber = null
-
-  for (let i = 0; i < snapshotScriptLines.length; i++) {
-    const snapshotAbsoluteLineNumber = i + 1
-    const snapshotContentLine = snapshotScriptLines[i]
-    if (snapshotContentLine === '  customRequire.definitions = {') {
-      insideCustomRequireDefinitions = true
-      sourceMapGenerator.addMapping({
-        source: '<embedded>',
-        original: {line: snapshotAbsoluteLineNumber, column: 0},
-        generated: {line: snapshotAbsoluteLineNumber, column: 0}
-      })
-    } else if (insideCustomRequireDefinitions) {
-      if (snapshotContentLine === '  };') {
-        insideCustomRequireDefinitions = false
-        sourceMapGenerator.addMapping({
-          source: '<embedded>',
-          original: {line: snapshotAbsoluteLineNumber, column: 0},
-          generated: {line: snapshotAbsoluteLineNumber, column: 0}
-        })
-      } else if (snapshotContentLine.startsWith('    "')) {
-        currentFileName = snapshotContentLine.slice(5, -(FUNCTION_HEADER.length + 5))
-        currentFileRelativeLineNumber = 1
-        sourceMapGenerator.addMapping({
-          source: '<embedded>',
-          original: {line: snapshotAbsoluteLineNumber, column: 0},
-          generated: {line: snapshotAbsoluteLineNumber, column: 0}
-        })
-      } else if (currentFileName) {
-        sourceMapGenerator.addMapping({
-          source: currentFileName,
-          original: {line: currentFileRelativeLineNumber++, column: 0},
-          generated: {line: snapshotAbsoluteLineNumber, column: 0}
-        })
-
-        if (snapshotContentLine.startsWith('    }')) {
-          currentFileName = null
-          currentFileRelativeLineNumber = null
-        }
-      }
-    } else {
-      sourceMapGenerator.addMapping({
-        source: '<embedded>',
-        original: {line: snapshotAbsoluteLineNumber, column: 0},
-        generated: {line: snapshotAbsoluteLineNumber, column: 0}
-      })
-    }
+  // Replace `require.definitions = {}` with an assignment of the actual definitions
+  // of all the modules.
+  const definitionsAssignment = 'customRequire.definitions = {}'
+  const definitionsAssignmentStartIndex = snapshotScript.indexOf(definitionsAssignment)
+  const definitionsAssignmentEndIndex = definitionsAssignmentStartIndex + definitionsAssignment.length
+  const sections = []
+  let sectionStartRow = getLineCount(snapshotScript.slice(0, definitionsAssignmentStartIndex)) + 1
+  let definitions = ''
+  const moduleFilePaths = Object.keys(moduleASTs)
+  for (let i = 0; i < moduleFilePaths.length; i++) {
+    const relativePath = moduleFilePaths[i]
+    const source = moduleASTs[relativePath]
+    const lineCount = getLineCount(source)
+    sections.push({relativePath, startRow: sectionStartRow, endRow: (sectionStartRow + lineCount) - 2})
+    definitions += indentString(`${JSON.stringify(relativePath)}: ${source}`, ' ', 4) + ',\n'
+    sectionStartRow += lineCount
   }
 
-  const sourceMapAssignment = 'snapshotAuxiliaryData.sourceMap = {}'
-  const sourceMapAssignmentStartIndex = snapshotScript.indexOf(sourceMapAssignment)
-  const sourceMapAssignmentEndIndex = sourceMapAssignmentStartIndex + sourceMapAssignment.length
   snapshotScript =
-    snapshotScript.slice(0, sourceMapAssignmentStartIndex) +
-    `snapshotAuxiliaryData.sourceMap = ${sourceMapGenerator.toString()}` +
-    snapshotScript.slice(sourceMapAssignmentEndIndex)
+    snapshotScript.slice(0, definitionsAssignmentStartIndex) +
+    `customRequire.definitions = {\n${definitions}\n  };` +
+    snapshotScript.slice(definitionsAssignmentEndIndex)
+
+  // The following code to generate metadata to map line numbers in the snapshot
+  // must remain at the end of this function to ensure all the embedded code is
+  // accounted for.
+  const sectionsAssignment = 'snapshotAuxiliaryData.snapshotSections = []'
+  const sectionsAssignmentStartIndex = snapshotScript.indexOf(sectionsAssignment)
+  const sectionsAssignmentEndIndex = sectionsAssignmentStartIndex + sectionsAssignment.length
+  snapshotScript =
+    snapshotScript.slice(0, sectionsAssignmentStartIndex) +
+    `snapshotAuxiliaryData.snapshotSections = ${JSON.stringify(sections)}` +
+    snapshotScript.slice(sectionsAssignmentEndIndex)
 
   return snapshotScript
+}
+
+function getLineCount (text) {
+  let lineCount = 1
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '\n') lineCount++
+  }
+  return lineCount
 }

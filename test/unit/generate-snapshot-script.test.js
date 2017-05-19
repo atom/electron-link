@@ -141,7 +141,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       shouldExcludeModule: (modulePath) => false
     })
     eval(snapshotScript)
-    delete snapshotAuxiliaryData.sourceMap
+    delete snapshotAuxiliaryData.snapshotSections
     assert.deepEqual(snapshotAuxiliaryData, auxiliaryData)
     await cache.dispose()
   })
@@ -162,7 +162,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     await cache.dispose()
   })
 
-  test('source map generation', async () => {
+  test('row translation', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
     const cache = new TransformCache(temp.mkdirSync(), 'invalidation-key')
@@ -173,24 +173,16 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
     })
     eval(snapshotScript)
+    snapshotResult.setGlobals(global, process, {}, {}, console, require)
 
-    const sourceMapConsumer = new SourceMapConsumer(snapshotAuxiliaryData.sourceMap)
-    const mappings = [
-      [10, {source: '<embedded>', line: 10}],
-      [85, {source: '<embedded>', line: 85}],
-      [109, {source: '../fixtures/module-1/index.js', line: 1}],
-      [115, {source: '../fixtures/module-1/index.js', line: 7}],
-      [138, {source: '../fixtures/module-1/dir/c.json', line: 2}],
-      [140, {source: '<embedded>', line: 140}],
-      [141, {source: '../fixtures/module-1/node_modules/a/index.js', line: 1}],
-      [144, {source: '<embedded>', line: 144}]
-    ]
-    for (const mapping of mappings) {
-      const snapshotPosition = {line: mapping[0], column: 0}
-      const filePosition = {source: mapping[1].source, line: mapping[1].line, column: 0, name: null}
-      assert.deepEqual(sourceMapConsumer.originalPositionFor(snapshotPosition), filePosition)
-      assert.deepEqual(sourceMapConsumer.generatedPositionFor(filePosition), Object.assign(snapshotPosition, {lastColumn: null}))
-    }
+    assert.deepEqual(snapshotResult.translateSnapshotRow(10), {relativePath: '<embedded>', row: 10})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(107), {relativePath: '<embedded>', row: 107})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(108), {relativePath: '../fixtures/module-1/index.js', row: 0})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(121), {relativePath: '../fixtures/module-1/index.js', row: 13})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(122), {relativePath: '<embedded>', row: 122})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(128), {relativePath: '../fixtures/module-1/dir/a.js', row: 4})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(140), {relativePath: '../fixtures/module-1/node_modules/a/index.js', row: 0})
+    assert.deepEqual(snapshotResult.translateSnapshotRow(190), {relativePath: '<embedded>', row: 190})
 
     await cache.dispose()
   })
