@@ -47,7 +47,7 @@ module.exports = async function (cache, options) {
         transformedSource = cachedTransform.source
         foundRequires = cachedTransform.requires
       } else {
-        transformedSource = indentString(transform.apply(), ' ', 2)
+        transformedSource = indentString(transform.apply(), 2)
         await cache.put({filePath, original: source, transformed: transformedSource, requires: foundRequires})
       }
 
@@ -100,7 +100,7 @@ module.exports = async function (cache, options) {
     const source = moduleASTs[relativePath]
     const lineCount = getLineCount(source)
     sections.push({relativePath, startRow: sectionStartRow, endRow: (sectionStartRow + lineCount) - 2})
-    definitions += indentString(`${JSON.stringify(relativePath)}: ${source}`, ' ', 4) + ',\n'
+    definitions += indentString(`${JSON.stringify(relativePath)}: ${source}`, 4) + ',\n'
     sectionStartRow += lineCount
   }
 
