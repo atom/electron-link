@@ -47,7 +47,17 @@ module.exports = async function (cache, options) {
         transformedSource = cachedTransform.source
         foundRequires = cachedTransform.requires
       } else {
-        transformedSource = indentString(transform.apply(), ' ', 2)
+        try {
+          transformedSource = indentString(transform.apply(), ' ', 2)
+        } catch (e) {
+          console.error(`Unable to transform source code for module ${filePath}.`)
+          if (e.index) {
+            const before = source.slice(e.index - 100, e.index)
+            const after = source.slice(e.index, e.index + 100)
+            console.error(`\n${before}==>${after}\n`)
+          }
+          throw e
+        }
         await cache.put({filePath, original: source, transformed: transformedSource, requires: foundRequires})
       }
 
