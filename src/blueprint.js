@@ -166,5 +166,5 @@ function generateSnapshot () {
 snapshotAuxiliaryData.snapshotSections = []
 var snapshotResult = generateSnapshot()
 // Delete the generateSnapshot function to prevent it from appearing in the
-// global scope and cause slowdowns when the function is particularly big.
+// global scope and causing slowdowns when the function is particularly big.
 generateSnapshot = null
