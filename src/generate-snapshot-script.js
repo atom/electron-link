@@ -29,7 +29,7 @@ module.exports = async function (cache, options) {
         source,
         baseDirPath: options.baseDirPath,
         didFindRequire: (unresolvedPath, resolvedPath) => {
-          if (options.shouldExcludeModule(resolvedPath)) {
+          if (options.shouldExcludeModule({requiringModulePath: filePath, requiredModulePath: resolvedPath})) {
             return true
           } else {
             foundRequires.push({unresolvedPath, resolvedPath})

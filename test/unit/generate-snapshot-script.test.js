@@ -30,7 +30,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       const {snapshotScript, includedFilePaths} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
-        shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+        shouldExcludeModule: ({requiredModulePath}) => requiredModulePath.endsWith('b.js')
       })
       eval(snapshotScript)
       snapshotResult.setGlobals(global, process, {}, {}, console, require)
@@ -60,7 +60,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       const {snapshotScript, includedFilePaths} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
-        shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+        shouldExcludeModule: ({requiredModulePath}) => requiredModulePath.endsWith('b.js')
       })
       eval(snapshotScript)
       snapshotResult.setGlobals(global, process, {}, {}, console, require)
@@ -79,7 +79,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       const {snapshotScript, includedFilePaths} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
-        shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+        shouldExcludeModule: ({requiredModulePath}) => requiredModulePath.endsWith('b.js')
       })
       eval(snapshotScript)
       snapshotResult.setGlobals(global, process, {}, {}, console, require)
@@ -101,7 +101,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       const {includedFilePaths} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
-        shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+        shouldExcludeModule: ({requiredModulePath}) => requiredModulePath.endsWith('b.js')
       })
 
       assert.deepEqual(Array.from(includedFilePaths), [
@@ -125,7 +125,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       const {snapshotScript, includedFilePaths} = await generateSnapshotScript(cache, {
         baseDirPath,
         mainPath,
-        shouldExcludeModule: (modulePath) => modulePath.endsWith('d.js') || modulePath.endsWith('e.js')
+        shouldExcludeModule: ({requiredModulePath}) => requiredModulePath.endsWith('d.js') || requiredModulePath.endsWith('e.js')
       })
       eval(snapshotScript)
       const cachedRequires = []
@@ -180,7 +180,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
       baseDirPath: __dirname,
       mainPath: path.resolve(__dirname, '..', 'fixtures', 'module-1', 'index.js'),
       auxiliaryData,
-      shouldExcludeModule: (modulePath) => false
+      shouldExcludeModule: () => false
     })
     eval(snapshotScript)
     delete snapshotAuxiliaryData.snapshotSections
@@ -212,7 +212,7 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     const {snapshotScript} = await generateSnapshotScript(cache, {
       baseDirPath,
       mainPath,
-      shouldExcludeModule: (modulePath) => modulePath.endsWith('b.js')
+      shouldExcludeModule: ({requiredModulePath}) => requiredModulePath.endsWith('b.js')
     })
     eval(snapshotScript)
     snapshotResult.setGlobals(global, process, {}, {}, console, require)
