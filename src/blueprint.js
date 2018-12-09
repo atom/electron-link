@@ -60,7 +60,6 @@ function generateSnapshot () {
 
   let console = {}
   function consoleNoop () {
-    throw new Error('Cannot use `console` functions in the snapshot.')
   }
   Object.defineProperties(console, {
     'debug': {value: consoleNoop, enumerable: false},
