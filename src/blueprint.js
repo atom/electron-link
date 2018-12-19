@@ -183,11 +183,10 @@ function generateSnapshot () {
         throw new Error(`Global method ${globalFunctionName} was still not defined after the snapshot was loaded`)
       } else if (new.target === undefined) {
         // Not called as a constructor
-        return globalFunctionTrampoline[globalFunctionName].apply(this, arguments)
+        return globalFunctionTrampoline[globalFunctionName](...arguments)
       } else {
         // Called as a constructor
-        // https://stackoverflow.com/a/8843181/10556
-        return new (Function.prototype.bind.apply(globalFunctionTrampoline[globalFunctionName], arguments))
+        return new globalFunctionTrampoline[globalFunctionName](...arguments)
       }
     }
   }
