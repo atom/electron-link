@@ -180,7 +180,7 @@ function generateSnapshot () {
       if (globalFunctionTrampoline === null) {
         throw new Error(`Attempt to call ${globalFunctionName} during snapshot generation or before snapshotResult.setGlobals()`)
       } else if (globalFunctionTrampoline[globalFunctionName] === undefined) {
-        throw new Error(`Global method ${globalFunctionName} was still not defined after the snapshot was loaded`)
+        throw new ReferenceError(`Global method ${globalFunctionName} was still not defined after the snapshot was loaded`)
       } else if (new.target === undefined) {
         // Not called as a constructor
         return globalFunctionTrampoline[globalFunctionName](...arguments)
