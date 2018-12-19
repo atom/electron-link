@@ -1,6 +1,8 @@
 var snapshotAuxiliaryData = {}
 
 function generateSnapshot () {
+  const outerScope = this
+
   let process = {}
   Object.defineProperties(process, {
     'platform': {value: 'processPlatform', enumerable: false},
@@ -195,7 +197,7 @@ function generateSnapshot () {
     Object.defineProperties(global, {
       [globalFunctionName]: {value: placeholder, enumerable: false},
     })
-    this[globalFunctionName] = placeholder;
+    outerScope[globalFunctionName] = placeholder;
   }
 
   let window = {}
@@ -268,8 +270,9 @@ function generateSnapshot () {
         .getOwnPropertyNames(newGlobal)
         .filter(globalName => typeof newGlobal[globalName] === 'function');
       globalFunctionTrampoline = {};
-      for (let globalFunctionName of newGlobalFunctionNames) {
+      for (const globalFunctionName of newGlobalFunctionNames) {
         globalFunctionTrampoline[globalFunctionName] = newGlobal[globalFunctionName]
+        outerScope[globalFunctionName] = newGlobal[globalFunctionName]
       }
 
       for (let key of Object.keys(global)) {
