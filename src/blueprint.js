@@ -270,7 +270,7 @@ function generateSnapshot () {
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
       globalFunctionTrampoline = {};
       for (const globalFunctionName of globalFunctionNames) {
-        if (newGlobal[globalFunctionName] === global[globalFunctionName]) {
+        if (newGlobal[globalFunctionName] === global[globalFunctionName] || newGlobal[globalFunctionName] === undefined) {
           delete newGlobal[globalFunctionName]
           continue
         }
