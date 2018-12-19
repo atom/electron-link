@@ -270,6 +270,10 @@ function generateSnapshot () {
         .filter(globalName => typeof newGlobal[globalName] === 'function');
       globalFunctionTrampoline = {};
       for (const globalFunctionName of newGlobalFunctionNames) {
+        if (newGlobal[globalFunctionName] === global[globalFunctionName]) {
+          delete newGlobal[globalFunctionName]
+          continue
+        }
         globalFunctionTrampoline[globalFunctionName] = newGlobal[globalFunctionName]
         outerScope[globalFunctionName] = newGlobal[globalFunctionName]
       }
