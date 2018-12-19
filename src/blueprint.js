@@ -268,11 +268,8 @@ function generateSnapshot () {
   return {
     customRequire,
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
-      const newGlobalFunctionNames = Object
-        .getOwnPropertyNames(newGlobal)
-        .filter(globalName => typeof newGlobal[globalName] === 'function');
       globalFunctionTrampoline = {};
-      for (const globalFunctionName of newGlobalFunctionNames) {
+      for (const globalFunctionName of globalFunctionNames) {
         if (newGlobal[globalFunctionName] === global[globalFunctionName]) {
           delete newGlobal[globalFunctionName]
           continue
