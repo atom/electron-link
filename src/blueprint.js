@@ -192,6 +192,9 @@ function generateSnapshot () {
   }
 
   for (const globalFunctionName of globalFunctionNames) {
+    if (outerScope[globalFunctionName] !== undefined) {
+      continue;
+    }
     const placeholder = makeGlobalPlaceholder(globalFunctionName);
     Object.defineProperties(global, {
       [globalFunctionName]: {value: placeholder, enumerable: false},
