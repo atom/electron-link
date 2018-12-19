@@ -266,7 +266,7 @@ function generateSnapshot () {
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
       const newGlobalFunctionNames = Object
         .getOwnPropertyNames(newGlobal)
-        .filter(globalName => typeof global[globalName] === 'function');
+        .filter(globalName => typeof newGlobal[globalName] === 'function');
       globalFunctionTrampoline = {};
       for (let globalFunctionName of newGlobalFunctionNames) {
         globalFunctionTrampoline[globalFunctionName] = newGlobal[globalFunctionName]
