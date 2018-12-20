@@ -49,6 +49,9 @@ function generateSnapshot () {
     return global
   }
 
+  // Globally visible function and constructor names that are available in an Electron renderer window, but not visible
+  // during snapshot creation.
+  // See test/samples/list-globals.js for the generation code.
   const globalFunctionNames = [
     "USBOutTransferResult", "USBIsochronousOutTransferResult", "USBIsochronousOutTransferPacket",
     "USBIsochronousInTransferResult", "USBIsochronousInTransferPacket", "USBInTransferResult", "USBInterface",
@@ -173,8 +176,14 @@ function generateSnapshot () {
     "$$", "$x",
   ]
 
+  // During snapshot generation, this is null.
+  // After snapshot load and setGlobals() is called, this is an object with global function names as keys and the real
+  // global functions as values.
   let globalFunctionTrampoline = null
 
+  // Create a placeholder function to install as a global in place of a function that may be available after snapshot
+  // load, at runtime. Uses the current state of globalFunctionTrampoline to either call the real function or throw
+  // an appropriate error for improper use.
   function makeGlobalPlaceholder(globalFunctionName) {
     return function() {
       if (globalFunctionTrampoline === null) {
@@ -191,8 +200,12 @@ function generateSnapshot () {
     }
   }
 
+  // Install a placeholder function for each global function we expect to have access to at runtime. Placeholder
+  // functions are set as properties on our "global" stand-in and also in this function's scope, so bare references
+  // will also capture the placeholder function (`var a = setTimeout` and `var a = global.setTimeout`).
   for (const globalFunctionName of globalFunctionNames) {
     if (outerScope[globalFunctionName] !== undefined) {
+      // This happens when the snapshot script is eval'd in tests.
       continue;
     }
     const placeholder = makeGlobalPlaceholder(globalFunctionName);
@@ -268,6 +281,7 @@ function generateSnapshot () {
   return {
     customRequire,
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
+      // Populate the global function trampoline with the real global functions defined on newGlobal.
       globalFunctionTrampoline = {};
       for (const globalFunctionName of globalFunctionNames) {
         if (newGlobal[globalFunctionName] === global[globalFunctionName] || newGlobal[globalFunctionName] === undefined) {
