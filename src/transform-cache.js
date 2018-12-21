@@ -1,5 +1,7 @@
 const crypto = require('crypto')
 const levelup = require('levelup')
+const encode = require('encoding-down')
+const leveldown = require('leveldown')
 
 module.exports = class TransformCache {
   constructor (filePath, invalidationKey) {
@@ -62,7 +64,7 @@ module.exports = class TransformCache {
 
   _initialize () {
     return new Promise((resolve, reject) => {
-      levelup(this.filePath, {}, (error, db) => {
+      levelup(encode(leveldown(this.filePath)), {}, (error, db) => {
         if (error) {
           reject(error)
         } else {

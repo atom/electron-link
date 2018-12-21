@@ -13,6 +13,8 @@ module.exports = async function (cache, options) {
   // phase 2.
   const moduleASTs = {}
   const requiredModulePaths = [options.mainPath]
+  const includedFilePaths = new Set(requiredModulePaths)
+
   while (requiredModulePaths.length > 0) {
     const filePath = requiredModulePaths.shift()
     let relativeFilePath = path.relative(options.baseDirPath, filePath).replace(/\\/g, '/')
@@ -27,7 +29,7 @@ module.exports = async function (cache, options) {
         source,
         baseDirPath: options.baseDirPath,
         didFindRequire: (unresolvedPath, resolvedPath) => {
-          if (options.shouldExcludeModule(resolvedPath)) {
+          if (options.shouldExcludeModule({requiringModulePath: filePath, requiredModulePath: resolvedPath})) {
             return true
           } else {
             foundRequires.push({unresolvedPath, resolvedPath})
@@ -62,7 +64,13 @@ module.exports = async function (cache, options) {
       }
 
       moduleASTs[relativeFilePath] = `function (exports, module, __filename, __dirname, require, define) {\n${transformedSource}\n}`
-      requiredModulePaths.push(...foundRequires.map(r => r.resolvedPath))
+
+      const resolvedRequirePaths = foundRequires.map(r => r.resolvedPath)
+      for (let i = 0; i < foundRequires.length; i++) {
+        const {resolvedPath} = foundRequires[i]
+        requiredModulePaths.push(resolvedPath)
+        includedFilePaths.add(resolvedPath)
+      }
     }
   }
 
@@ -130,7 +138,7 @@ module.exports = async function (cache, options) {
     `snapshotAuxiliaryData.snapshotSections = ${JSON.stringify(sections)}` +
     snapshotScript.slice(sectionsAssignmentEndIndex)
 
-  return snapshotScript
+  return {snapshotScript, includedFilePaths}
 }
 
 function getLineCount (text) {
