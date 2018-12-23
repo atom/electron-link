@@ -284,8 +284,9 @@ function generateSnapshot () {
       // Populate the global function trampoline with the real global functions defined on newGlobal.
       globalFunctionTrampoline = {};
       for (const globalFunctionName of globalFunctionNames) {
-        if (newGlobal[globalFunctionName] === global[globalFunctionName] || newGlobal[globalFunctionName] === undefined) {
-          delete newGlobal[globalFunctionName]
+        if (newGlobal[globalFunctionName] === undefined) {
+          delete globalFunctionTrampoline[globalFunctionName]
+          delete outerScope[globalFunctionName]
           continue
         }
         globalFunctionTrampoline[globalFunctionName] = newGlobal[globalFunctionName]
