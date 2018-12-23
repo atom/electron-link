@@ -343,7 +343,7 @@ function generateSnapshot () {
 }
 
 snapshotAuxiliaryData.snapshotSections = []
-var snapshotResult = generateSnapshot()
+var snapshotResult = generateSnapshot.call({})
 // Delete the generateSnapshot function to prevent it from appearing in the
 // global scope and causing slowdowns when the function is particularly big.
 generateSnapshot = null
