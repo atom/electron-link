@@ -52,6 +52,7 @@ function generateSnapshot () {
   // Globally visible function and constructor names that are available in an Electron renderer window, but not visible
   // during snapshot creation.
   // See test/samples/list-globals.js for the generation code.
+  // - Manually remove "webkitURL" which is deprecated to avoid a warning on startup.
   const globalFunctionNames = [
     "USBOutTransferResult", "USBIsochronousOutTransferResult", "USBIsochronousOutTransferPacket",
     "USBIsochronousInTransferResult", "USBIsochronousInTransferPacket", "USBInTransferResult", "USBInterface",
@@ -163,7 +164,7 @@ function generateSnapshot () {
     "CSSStyleRule", "CSSStyleDeclaration", "CSSRuleList", "CSSRule", "CSSPageRule", "CSSNamespaceRule", "CSSMediaRule",
     "CSSKeyframesRule", "CSSKeyframeRule", "CSSImportRule", "CSSGroupingRule", "CSSFontFaceRule", "CSS",
     "CSSConditionRule", "CDATASection", "Blob", "BeforeUnloadEvent", "BarProp", "Attr", "ApplicationCacheErrorEvent",
-    "ApplicationCache", "AnimationEvent", "WebKitCSSMatrix", "WebKitMutationObserver", "webkitURL",
+    "ApplicationCache", "AnimationEvent", "WebKitCSSMatrix", "WebKitMutationObserver",
     "WebKitAnimationEvent", "WebKitTransitionEvent", "onerror", "onload", "stop", "open", "alert", "confirm", "prompt",
     "print", "requestAnimationFrame", "cancelAnimationFrame", "requestIdleCallback", "cancelIdleCallback",
     "captureEvents", "releaseEvents", "getComputedStyle", "matchMedia", "moveTo", "moveBy", "resizeTo", "resizeBy",
