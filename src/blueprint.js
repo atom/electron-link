@@ -282,16 +282,7 @@ function generateSnapshot () {
     customRequire,
     setGlobals: function (newGlobal, newProcess, newWindow, newDocument, newConsole, nodeRequire) {
       // Populate the global function trampoline with the real global functions defined on newGlobal.
-      globalFunctionTrampoline = {};
-      for (const globalFunctionName of globalFunctionNames) {
-        if (newGlobal[globalFunctionName] === undefined) {
-          delete globalFunctionTrampoline[globalFunctionName]
-          delete outerScope[globalFunctionName]
-          continue
-        }
-        globalFunctionTrampoline[globalFunctionName] = newGlobal[globalFunctionName]
-        outerScope[globalFunctionName] = newGlobal[globalFunctionName]
-      }
+      globalFunctionTrampoline = newGlobal;
 
       for (let key of Object.keys(global)) {
         newGlobal[key] = global[key]
