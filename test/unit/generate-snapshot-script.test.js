@@ -12,6 +12,8 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
 
   beforeEach(() => {
     previousRequire = Module.prototype.require
+
+    global.moduleInitialized = false
   })
 
   afterEach(() => {
