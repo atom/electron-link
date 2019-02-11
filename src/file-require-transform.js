@@ -225,7 +225,10 @@ module.exports = class FileRequireTransform {
 
   resolveModulePath (moduleName) {
     try {
-      const absolutePath = resolve.sync(moduleName, {basedir: path.dirname(this.options.filePath), extensions: ['.js', '.json']})
+      const absolutePath = resolve.sync(moduleName, {
+        basedir: path.dirname(this.options.filePath),
+        extensions: this.options.extensions || ['.js', '.json']
+      })
       const isCoreNodeModule = absolutePath.indexOf(path.sep) === -1
       return isCoreNodeModule ? null : absolutePath
     } catch (e) {
