@@ -206,6 +206,43 @@ suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
     await cache.dispose()
   })
 
+  test('transpilation on demand', async () => {
+    const baseDirPath = __dirname
+    const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
+    const cachePath = temp.mkdirSync()
+
+    const cache = new TransformCache(cachePath, 'invalidation-key')
+    await cache.loadOrCreate()
+    const {snapshotScript, includedFilePaths} = await generateSnapshotScript(cache, {
+      baseDirPath,
+      mainPath,
+      shouldExcludeModule: () => false,
+      transpile: async ({requiredModulePath}) => {
+        if (requiredModulePath.endsWith('b.js')) {
+          return "(function () { this.b = '(transpiled yo)' }).call(this)"
+        } else {
+          return undefined
+        }
+      }
+    })
+
+    eval(snapshotScript)
+    snapshotResult.setGlobals(global, process, {}, {}, console, require)
+    assert(!global.moduleInitialized)
+    assert.equal(global.initialize(), 'a(transpiled yo)x/y(transpiled yo)Ad')
+    assert(global.moduleInitialized)
+
+    assert.deepEqual(Array.from(includedFilePaths), [
+      path.resolve(baseDirPath, '../fixtures/module-1/index.js'),
+      path.resolve(baseDirPath, '../fixtures/module-1/dir/a.js'),
+      path.resolve(baseDirPath, '../fixtures/module-1/dir/subdir/b.js'),
+      path.resolve(baseDirPath, '../fixtures/module-1/dir/c.json'),
+      path.resolve(baseDirPath, '../fixtures/module-1/node_modules/a/index.js')
+    ])
+    assert.equal((await cache._allKeys()).size, 11)
+    await cache.dispose()
+  })
+
   test('row translation', async () => {
     const baseDirPath = __dirname
     const mainPath = path.resolve(baseDirPath, '..', 'fixtures', 'module-1', 'index.js')
