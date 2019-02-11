@@ -82,7 +82,6 @@ module.exports = async function (cache, options) {
 
       moduleASTs[relativeFilePath] = `function (exports, module, __filename, __dirname, require, define) {\n${transformedSource}\n}`
 
-      const resolvedRequirePaths = foundRequires.map(r => r.resolvedPath)
       for (let i = 0; i < foundRequires.length; i++) {
         const {resolvedPath} = foundRequires[i]
         requiredModulePaths.push(resolvedPath)
