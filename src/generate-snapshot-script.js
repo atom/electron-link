@@ -12,7 +12,7 @@ module.exports = async function (cache, options) {
   // collecting abstract syntax trees for use in generating the script in
   // phase 2.
   const moduleASTs = {}
-  const requiredModulePaths = [options.mainPath]
+  const requiredModulePaths = options.mainPaths || [options.mainPath]
   const includedFilePaths = new Set(requiredModulePaths)
 
   if (!options.transpile) {
