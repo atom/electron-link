@@ -22,12 +22,13 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
+    "acorn": "^6.1.1",
     "ast-util": "^0.6.0",
+    "encoding-down": "~5.0.0",
     "indent-string": "^3.2.0",
     "leveldown": "~4.0.0",
     "levelup": "~3.0.0",
-    "encoding-down": "~5.0.0",
-    "recast": "^0.12.6",
+    "recast": "^0.17.5",
     "resolve": "^1.5.0",
     "source-map": "^0.5.6"
   }

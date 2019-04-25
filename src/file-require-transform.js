@@ -25,7 +25,15 @@ module.exports = class FileRequireTransform {
       // supported inside javascript strings) with escape unicode sequences.
       source = "module.exports = " + source.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
     }
-    this.ast = recast.parse(source)
+    this.ast = recast.parse(source, {
+      parser: {
+        parse(source) {
+          return require('recast/parsers/acorn').parse(source, {
+            ecmaVersion: 9
+          })
+        }
+      }
+    })
     this.lazyRequireFunctionsByVariableName = new Map()
     this.replaceDeferredRequiresWithLazyFunctions()
     this.replaceReferencesToDeferredRequiresWithFunctionCalls()
