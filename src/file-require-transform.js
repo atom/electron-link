@@ -29,7 +29,8 @@ module.exports = class FileRequireTransform {
       parser: {
         parse(source) {
           return require('recast/parsers/acorn').parse(source, {
-            ecmaVersion: 9
+            ecmaVersion: 9,
+            sourceType: 'script'
           })
         }
       }
