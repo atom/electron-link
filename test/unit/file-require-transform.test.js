@@ -355,7 +355,7 @@ suite('FileRequireTransform', () => {
     )
   })
 
-  test('Modern JS syntax features', () => {
+  test('Object spread properties', () => {
     const source = 'let {a, b, ...rest} = {a: 1, b: 2, c: 3}'
     assert.equal(
       new FileRequireTransform({source, didFindRequire: () => false}).apply(),
