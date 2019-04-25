@@ -355,6 +355,16 @@ suite('FileRequireTransform', () => {
     )
   })
 
+  test('Object spread properties', () => {
+    const source = 'let {a, b, ...rest} = {a: 1, b: 2, c: 3}'
+    assert.equal(
+      new FileRequireTransform({source, didFindRequire: () => false}).apply(),
+      dedent`
+        let {a, b, ...rest} = {a: 1, b: 2, c: 3}
+      `
+    )
+  })
+
   test('path resolution', () => {
     const baseDirPath = path.resolve(__dirname, '..', 'fixtures', 'module-1')
     const filePath = path.join(baseDirPath, 'dir', 'entry.js')
