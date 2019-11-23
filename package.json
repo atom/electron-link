@@ -24,10 +24,10 @@
   "dependencies": {
     "acorn": "^6.1.1",
     "ast-util": "^0.6.0",
-    "encoding-down": "~5.0.0",
+    "encoding-down": "^6.3.0",
     "indent-string": "^3.2.0",
-    "leveldown": "~4.0.0",
-    "levelup": "~3.0.0",
+    "leveldown": "^5.4.1",
+    "levelup": "^4.3.2",
     "recast": "^0.17.5",
     "resolve": "^1.5.0",
     "source-map": "^0.5.6"
