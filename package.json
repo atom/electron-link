@@ -11,25 +11,25 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.23.0",
+    "babel-cli": "^6.26.0",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-register": "^6.23.0",
     "dedent": "^0.6.0",
-    "electron": "2.0.18",
+    "electron": "^2.0.18",
     "electron-mocha": "^3.3.0",
     "mocha": "^3.2.0",
-    "rimraf": "^2.6.1",
-    "temp": "^0.8.3"
+    "rimraf": "^2.7.1",
+    "temp": "^0.8.4"
   },
   "dependencies": {
     "acorn": "^6.1.1",
     "ast-util": "^0.6.0",
-    "encoding-down": "~5.0.0",
+    "encoding-down": "^5.0.4",
     "indent-string": "^3.2.0",
     "leveldown": "^5.4.1",
     "levelup": "~3.0.0",
-    "recast": "^0.17.5",
-    "resolve": "^1.5.0",
+    "recast": "^0.17.6",
+    "resolve": "^1.13.1",
     "source-map": "^0.5.6"
   }
 }
