@@ -4,8 +4,8 @@
   "description": "Generates scripts to pass to V8's `mksnapshot` tool.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "mocha test/**/*.test.js --ui=tdd --compilers js:babel-register",
-    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive --compilers js:babel-register",
+    "test": "mocha test/**/*.test.js --ui=tdd --require @babel/register",
+    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive --require @babel/register",
     "prepublish": "rimraf lib && babel src -d lib"
   },
   "author": "",
@@ -17,8 +17,8 @@
     "@babel/register": "^7.10.3",
     "dedent": "0.7.0",
     "electron": "5.0.13",
-    "electron-mocha": "^3.3.0",
-    "mocha": "^3.2.0",
+    "electron-mocha": "^8.2.2",
+    "mocha": "^8.0.1",
     "rimraf": "3.0.2",
     "temp": "0.9.1"
   },
