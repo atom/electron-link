@@ -22,7 +22,7 @@
     "temp": "^0.8.4"
   },
   "dependencies": {
-    "acorn": "^6.1.1",
+    "acorn": "^7.3.1",
     "ast-util": "^0.6.0",
     "encoding-down": "^5.0.4",
     "indent-string": "^3.2.0",
