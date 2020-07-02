@@ -6,6 +6,7 @@ const path = require('path')
 const temp = require('temp').track()
 const TransformCache = require('../../src/transform-cache')
 const {SourceMapConsumer} = require('source-map')
+const {beforeEach, afterEach} = require("mocha")
 
 suite('generateSnapshotScript({baseDirPath, mainPath})', () => {
   let previousRequire

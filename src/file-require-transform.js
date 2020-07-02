@@ -1,7 +1,7 @@
 const assert = require('assert')
 const path = require('path')
 const recast = require('recast')
-const astUtil = require('ast-util')
+const astUtil = require('ast-util-plus')
 const b = recast.types.builders
 const resolve = require('resolve')
 
@@ -29,7 +29,7 @@ module.exports = class FileRequireTransform {
       parser: {
         parse(source) {
           return require('recast/parsers/acorn').parse(source, {
-            ecmaVersion: 9,
+            ecmaVersion: 2020,
             sourceType: 'script'
           })
         }
