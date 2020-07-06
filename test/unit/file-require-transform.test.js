@@ -467,4 +467,34 @@ suite('FileRequireTransform', () => {
       `
     )
   })
+  test('assign to `module` or `exports`', () => {
+    const source = dedent`
+      var pack = require('pack')      
+      if (condition) {
+          module.exports.pack = pack
+          module.exports = pack
+          exports.pack = pack
+          exports = pack
+      }
+    `
+    assert.equal(
+        new FileRequireTransform({source, didFindRequire: (mod) => mod === 'pack'}).apply(),
+        dedent`
+        var pack
+        
+        function get_pack() {
+            return pack = pack || require('pack');
+        }
+        
+        if (condition) {
+            module.exports.pack = get_pack()
+            module.exports = get_pack()
+            exports.pack = get_pack()
+            exports = get_pack()
+        }
+      `
+    )
+  })
+
+
 })
