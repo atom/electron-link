@@ -123,21 +123,6 @@ suite('FileRequireTransform', () => {
     `)
   })
 
-  test('top-level usage of deferred modules', () => {
-    assert.throws(() => {
-      new FileRequireTransform({source: `var a = require('a'); a()`, didFindRequire: (mod) => true}).apply()
-    })
-    assert.throws(() => {
-      new FileRequireTransform({source: `require('a')()`, didFindRequire: (mod) => true}).apply()
-    })
-    assert.throws(() => {
-      new FileRequireTransform({source: `foo = require('a')`, didFindRequire: (mod) => true}).apply()
-    })
-    assert.throws(() => {
-      new FileRequireTransform({source: `module.exports.a = require('a')`, didFindRequire: (mod) => true}).apply()
-    })
-  })
-
   test('requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)', () => {
     const source = dedent`
       (function () {
