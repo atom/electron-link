@@ -212,11 +212,7 @@ module.exports = class FileRequireTransform {
       }
       parentPath = parentPath.parent
     }
-
-    throw new Error(
-      `${this.options.filePath}\n` +
-      `Cannot replace with lazy function because the supplied node does not belong to an assignment expression or a variable declaration!`
-    )
+    return    // just call the reference it directly
   }
 
   isReferenceToLazyRequire (astPath) {
