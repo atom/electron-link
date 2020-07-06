@@ -428,4 +428,43 @@ suite('FileRequireTransform', () => {
       {unresolvedPath: 'd' , resolvedPath: 'd'},
     ])
   })
+
+  test('use reference directly', () => {
+    const source = dedent`
+      var pack = require('pack')
+      
+      const x = console.log(pack);
+      if (condition) {
+          pack
+      } else {
+        Object.keys(pack).forEach(function (prop) {
+          exports[prop] = pack[prop]
+        })
+      }
+    `
+    assert.equal(
+        new FileRequireTransform({source, didFindRequire: (mod) => mod === 'pack'}).apply(),
+        dedent`
+          var pack
+          
+          function get_pack() {
+            return pack = pack || require('pack');
+          }
+          
+          let x;
+          
+          function get_x() {
+            return x = x || get_console().log(get_pack());
+          }
+          
+          if (condition) {
+              get_pack()
+          } else {
+            Object.keys(get_pack()).forEach(function (prop) {
+              exports[prop] = get_pack()[prop]
+            })
+          }
+      `
+    )
+  })
 })
