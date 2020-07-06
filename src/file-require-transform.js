@@ -129,12 +129,18 @@ module.exports = class FileRequireTransform {
           ifStatementPath = ifStatementPath.parent
         }
 
-        // Ensure we're assigning to a variable declared in this scope.
+
         let assignmentLhs = parentNode.left
         while (assignmentLhs.type === 'MemberExpression') {
           assignmentLhs = assignmentLhs.object
         }
         assert.equal(assignmentLhs.type, 'Identifier')
+
+        if (["module", "exports"].includes(assignmentLhs.name)) {
+          return // don't replace anything (module.exports = get_name)
+        }
+
+        // Ensure we're assigning to a variable declared in this scope.
         assert(
           astPath.scope.declares(assignmentLhs.name),
           `${this.options.filePath}\nAssigning a deferred module to a variable that was not declared in this scope is not supported!`
@@ -218,14 +224,17 @@ module.exports = class FileRequireTransform {
   isReferenceToLazyRequire (astPath) {
     const scope = astPath.scope
     const lazyRequireFunctionName = this.lazyRequireFunctionsByVariableName.get(astPath.node.name)
-    return (
-      lazyRequireFunctionName != null &&
-      (scope.node.type !== 'FunctionDeclaration' || lazyRequireFunctionName !== astPath.scope.node.id.name) &&
-      (scope.node.type !== 'FunctionExpression' || scope.path.parent.node.type !== 'AssignmentExpression' || lazyRequireFunctionName !== scope.path.parent.node.left.name) &&
-      (astPath.parent.node.type !== 'Property' || astPath.parent.parent.node.type !== 'ObjectPattern') &&
-      astPath.parent.node.type !== 'AssignmentExpression' &&
-      astUtil.isReference(astPath)
-    )
+    if (lazyRequireFunctionName != null &&
+        (scope.node.type !== 'FunctionDeclaration' || lazyRequireFunctionName !== astPath.scope.node.id.name) &&
+        (scope.node.type !== 'FunctionExpression' || scope.path.parent.node.type !== 'AssignmentExpression' || lazyRequireFunctionName !== scope.path.parent.node.left.name) &&
+        (astPath.parent.node.type !== 'Property' || astPath.parent.parent.node.type !== 'ObjectPattern') ) {
+      if (astPath.parent.node.type === 'AssignmentExpression') {
+        return astPath.name === "right" && astUtil.isReference(astPath) // e.g module.exports = a_reference;
+      } else {
+        return astUtil.isReference(astPath)
+      }
+
+    }
   }
 
   resolveModulePath (moduleName) {
