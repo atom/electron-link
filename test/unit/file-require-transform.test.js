@@ -123,21 +123,6 @@ suite('FileRequireTransform', () => {
     `)
   })
 
-  test('top-level usage of deferred modules', () => {
-    assert.throws(() => {
-      new FileRequireTransform({source: `var a = require('a'); a()`, didFindRequire: (mod) => true}).apply()
-    })
-    assert.throws(() => {
-      new FileRequireTransform({source: `require('a')()`, didFindRequire: (mod) => true}).apply()
-    })
-    assert.throws(() => {
-      new FileRequireTransform({source: `foo = require('a')`, didFindRequire: (mod) => true}).apply()
-    })
-    assert.throws(() => {
-      new FileRequireTransform({source: `module.exports.a = require('a')`, didFindRequire: (mod) => true}).apply()
-    })
-  })
-
   test('requires that appear in a closure wrapper defined in the top-level scope (e.g. CoffeeScript)', () => {
     const source = dedent`
       (function () {
@@ -428,4 +413,73 @@ suite('FileRequireTransform', () => {
       {unresolvedPath: 'd' , resolvedPath: 'd'},
     ])
   })
+
+  test('use reference directly', () => {
+    const source = dedent`
+      var pack = require('pack')
+      
+      const x = console.log(pack);
+      if (condition) {
+          pack
+      } else {
+        Object.keys(pack).forEach(function (prop) {
+          exports[prop] = pack[prop]
+        })
+      }
+    `
+    assert.equal(
+        new FileRequireTransform({source, didFindRequire: (mod) => mod === 'pack'}).apply(),
+        dedent`
+          var pack
+          
+          function get_pack() {
+            return pack = pack || require('pack');
+          }
+          
+          let x;
+          
+          function get_x() {
+            return x = x || get_console().log(get_pack());
+          }
+          
+          if (condition) {
+              get_pack()
+          } else {
+            Object.keys(get_pack()).forEach(function (prop) {
+              exports[prop] = get_pack()[prop]
+            })
+          }
+      `
+    )
+  })
+  test('assign to `module` or `exports`', () => {
+    const source = dedent`
+      var pack = require('pack')      
+      if (condition) {
+          module.exports.pack = pack
+          module.exports = pack
+          exports.pack = pack
+          exports = pack
+      }
+    `
+    assert.equal(
+        new FileRequireTransform({source, didFindRequire: (mod) => mod === 'pack'}).apply(),
+        dedent`
+        var pack
+        
+        function get_pack() {
+            return pack = pack || require('pack');
+        }
+        
+        if (condition) {
+            module.exports.pack = get_pack()
+            module.exports = get_pack()
+            exports.pack = get_pack()
+            exports = get_pack()
+        }
+      `
+    )
+  })
+
+
 })

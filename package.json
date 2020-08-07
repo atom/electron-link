@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha test/**/*.test.js --ui=tdd --require @babel/register",
     "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive --require @babel/register",
-    "prepublish": "rimraf lib && babel src -d lib"
+    "build": "rimraf lib && babel src -d lib",
+    "prepare": "npm run build"
   },
   "author": "",
   "license": "MIT",
