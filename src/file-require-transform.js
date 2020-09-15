@@ -138,8 +138,7 @@ module.exports = class FileRequireTransform {
         assert.equal(assignmentLhs.type, 'Identifier')
 
         if (["module", "exports"].includes(assignmentLhs.name)) {
-          console.warn(`##[warning] ${this.options.filePath}\n` +
-          `The reference to the module is replaced with the lazy function, but it is assigned to "module" or "exports". In some cases the bundle might not work, which you should fix manually.`);
+          console.warn(`##[warning] The reference to the module is replaced with the lazy function, but it is assigned to "module" or "exports". In some cases the bundle might not work, which you should fix manually: \n ${this.options.filePath} \n`);
           return // don't replace anything (module.exports = get_name)
         }
 
@@ -221,8 +220,7 @@ module.exports = class FileRequireTransform {
       }
       parentPath = parentPath.parent
     }
-    console.warn(`##[warning] ${this.options.filePath}\n` +
-    `The reference to the module is replaced with the lazy function, but it was not in an assignment expression or a variable declaration. In some cases the bundle might not work, which you should fix manually.`);
+    console.warn(`##[warning] The reference to the module is replaced with the lazy function, but it was not in an assignment expression or a variable declaration. In some cases the bundle might not work, which you should fix manually: \n ${this.options.filePath} `);
     return    // just call the reference it directly
   }
 
