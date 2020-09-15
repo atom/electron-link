@@ -4,6 +4,7 @@ const recast = require('recast')
 const astUtil = require('ast-util-plus')
 const b = recast.types.builders
 const resolve = require('resolve')
+const acorn = require('recast/parsers/acorn')
 
 const GLOBALS = new Set(['global', 'window', 'process', 'document', 'console'])
 const NODE_CORE_MODULES = new Set([
@@ -28,7 +29,7 @@ module.exports = class FileRequireTransform {
     this.ast = recast.parse(source, {
       parser: {
         parse(source) {
-          return require('recast/parsers/acorn').parse(source, {
+          return acorn.parse(source, {
             ecmaVersion: 2020,
             sourceType: 'script'
           })
