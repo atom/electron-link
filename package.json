@@ -4,34 +4,30 @@
   "description": "Generates scripts to pass to V8's `mksnapshot` tool.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "mocha test/**/*.test.js --ui=tdd --require @babel/register",
-    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive --require @babel/register",
+    "test": "mocha test/**/*.test.js --ui=tdd",
+    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive",
     "build": "rimraf lib && babel src -d lib",
     "prepare": "npm run build"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.10.3",
-    "@babel/cli": "^7.10.3",
-    "@babel/plugin-transform-async-to-generator": "^7.10.1",
-    "@babel/register": "^7.10.3",
     "dedent": "0.7.0",
-    "electron": "5.0.13",
-    "electron-mocha": "^8.2.2",
-    "mocha": "^8.0.1",
+    "electron": "^9",
+    "electron-mocha": "^10.0.0",
+    "mocha": "^8.2.1",
     "rimraf": "3.0.2",
-    "temp": "0.9.1"
+    "temp": "0.9.4"
   },
   "dependencies": {
-    "acorn": "^7.3.1",
-    "ast-util-plus": "^0.6.2",
+    "acorn": "^8.0.4",
+    "ast-util-plus": "^0.7.1",
     "encoding-down": "^6.3.0",
     "indent-string": "^4.0.0",
     "leveldown": "^5.6.0",
     "levelup": "^4.4.0",
-    "recast": "^0.19.1",
-    "resolve": "^1.17.0",
+    "recast": "^0.20.4",
+    "resolve": "^1.19.0",
     "source-map": "^0.7.3"
   }
 }

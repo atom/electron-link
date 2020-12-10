@@ -4,6 +4,7 @@ const recast = require('recast')
 const astUtil = require('ast-util-plus')
 const b = recast.types.builders
 const resolve = require('resolve')
+const acorn = require('recast/parsers/acorn')
 
 const GLOBALS = new Set(['global', 'window', 'process', 'document', 'console'])
 const NODE_CORE_MODULES = new Set([
@@ -28,7 +29,7 @@ module.exports = class FileRequireTransform {
     this.ast = recast.parse(source, {
       parser: {
         parse(source) {
-          return require('recast/parsers/acorn').parse(source, {
+          return acorn.parse(source, {
             ecmaVersion: 2020,
             sourceType: 'script'
           })
@@ -137,8 +138,7 @@ module.exports = class FileRequireTransform {
         assert.equal(assignmentLhs.type, 'Identifier')
 
         if (["module", "exports"].includes(assignmentLhs.name)) {
-          console.warn(`##[warning] ${this.options.filePath}\n` +
-          `The reference to the module is replaced with the lazy function, but it is assigned to "module" or "exports". In some cases the bundle might not work, which you should fix manually.`);
+          console.warn(`##[warning] The reference to the module is replaced with the lazy function, but it is assigned to "module" or "exports". In some cases the bundle might not work, which you should fix manually: \n ${this.options.filePath} \n`);
           return // don't replace anything (module.exports = get_name)
         }
 
@@ -220,8 +220,7 @@ module.exports = class FileRequireTransform {
       }
       parentPath = parentPath.parent
     }
-    console.warn(`##[warning] ${this.options.filePath}\n` +
-    `The reference to the module is replaced with the lazy function, but it was not in an assignment expression or a variable declaration. In some cases the bundle might not work, which you should fix manually.`);
+    console.warn(`##[warning] The reference to the module is replaced with the lazy function, but it was not in an assignment expression or a variable declaration. In some cases the bundle might not work, which you should fix manually: \n ${this.options.filePath} `);
     return    // just call the reference it directly
   }
 
