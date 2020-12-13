@@ -1,9 +1,10 @@
 const assert = require('assert')
 const path = require('path')
 const recast = require('recast')
-const astUtil = require('ast-util')
+const astUtil = require('ast-util-plus')
 const b = recast.types.builders
 const resolve = require('resolve')
+const acorn = require('recast/parsers/acorn')
 
 const GLOBALS = new Set(['global', 'window', 'process', 'document', 'console'])
 const NODE_CORE_MODULES = new Set([
@@ -25,7 +26,16 @@ module.exports = class FileRequireTransform {
       // supported inside javascript strings) with escape unicode sequences.
       source = "module.exports = " + source.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
     }
-    this.ast = recast.parse(source)
+    this.ast = recast.parse(source, {
+      parser: {
+        parse(source) {
+          return acorn.parse(source, {
+            ecmaVersion: 2020,
+            sourceType: 'script'
+          })
+        }
+      }
+    })
     this.lazyRequireFunctionsByVariableName = new Map()
     this.replaceDeferredRequiresWithLazyFunctions()
     this.replaceReferencesToDeferredRequiresWithFunctionCalls()
@@ -120,12 +130,19 @@ module.exports = class FileRequireTransform {
           ifStatementPath = ifStatementPath.parent
         }
 
-        // Ensure we're assigning to a variable declared in this scope.
+
         let assignmentLhs = parentNode.left
         while (assignmentLhs.type === 'MemberExpression') {
           assignmentLhs = assignmentLhs.object
         }
         assert.equal(assignmentLhs.type, 'Identifier')
+
+        if (["module", "exports"].includes(assignmentLhs.name)) {
+          console.warn(`##[warning] The reference to the module is replaced with the lazy function, but it is assigned to "module" or "exports". In some cases the bundle might not work, which you should fix manually: \n ${this.options.filePath} \n`);
+          return // don't replace anything (module.exports = get_name)
+        }
+
+        // Ensure we're assigning to a variable declared in this scope.
         assert(
           astPath.scope.declares(assignmentLhs.name),
           `${this.options.filePath}\nAssigning a deferred module to a variable that was not declared in this scope is not supported!`
@@ -203,24 +220,24 @@ module.exports = class FileRequireTransform {
       }
       parentPath = parentPath.parent
     }
-
-    throw new Error(
-      `${this.options.filePath}\n` +
-      `Cannot replace with lazy function because the supplied node does not belong to an assignment expression or a variable declaration!`
-    )
+    console.warn(`##[warning] The reference to the module is replaced with the lazy function, but it was not in an assignment expression or a variable declaration. In some cases the bundle might not work, which you should fix manually: \n ${this.options.filePath} `);
+    return    // just call the reference it directly
   }
 
   isReferenceToLazyRequire (astPath) {
     const scope = astPath.scope
     const lazyRequireFunctionName = this.lazyRequireFunctionsByVariableName.get(astPath.node.name)
-    return (
-      lazyRequireFunctionName != null &&
-      (scope.node.type !== 'FunctionDeclaration' || lazyRequireFunctionName !== astPath.scope.node.id.name) &&
-      (scope.node.type !== 'FunctionExpression' || scope.path.parent.node.type !== 'AssignmentExpression' || lazyRequireFunctionName !== scope.path.parent.node.left.name) &&
-      (astPath.parent.node.type !== 'Property' || astPath.parent.parent.node.type !== 'ObjectPattern') &&
-      astPath.parent.node.type !== 'AssignmentExpression' &&
-      astUtil.isReference(astPath)
-    )
+    if (lazyRequireFunctionName != null &&
+        (scope.node.type !== 'FunctionDeclaration' || lazyRequireFunctionName !== astPath.scope.node.id.name) &&
+        (scope.node.type !== 'FunctionExpression' || scope.path.parent.node.type !== 'AssignmentExpression' || lazyRequireFunctionName !== scope.path.parent.node.left.name) &&
+        (astPath.parent.node.type !== 'Property' || astPath.parent.parent.node.type !== 'ObjectPattern') ) {
+      if (astPath.parent.node.type === 'AssignmentExpression') {
+        return astPath.name === "right" && astUtil.isReference(astPath) // e.g module.exports = a_reference;
+      } else {
+        return astUtil.isReference(astPath)
+      }
+
+    }
   }
 
   resolveModulePath (moduleName) {
