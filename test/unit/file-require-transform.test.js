@@ -4,7 +4,7 @@ const assert = require('assert')
 const dedent = require('dedent')
 const path = require('path')
 const recast = require('recast')
-const FileRequireTransform = require('../../src/file-require-transform')
+const FileRequireTransform = require('../../lib/file-require-transform')
 
 suite('FileRequireTransform', () => {
   test('simple require', () => {
