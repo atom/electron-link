@@ -5,9 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha test/**/*.test.js --ui=tdd",
-    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive",
-    "build": "rimraf lib && babel src -d lib",
-    "prepare": "npm run build"
+    "tdd": "electron-mocha test/**/*.test.js --ui=tdd --renderer --interactive"
   },
   "author": "",
   "license": "MIT",
