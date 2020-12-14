@@ -1,10 +1,10 @@
 const assert = require('assert')
 const fs = require('fs')
-const generateSnapshotScript = require('../../src/generate-snapshot-script')
+const generateSnapshotScript = require('../../lib/generate-snapshot-script')
 const Module = require('module')
 const path = require('path')
 const temp = require('temp').track()
-const TransformCache = require('../../src/transform-cache')
+const TransformCache = require('../../lib/transform-cache')
 const {SourceMapConsumer} = require('source-map')
 const {beforeEach, afterEach} = require("mocha")
 

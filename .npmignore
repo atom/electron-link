@@ -1,4 +1,4 @@
 .npmrc
 .babelrc
-src
+appveyor.yml
 test
