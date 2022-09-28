@@ -1,4 +1,5 @@
-# electron-link
+##### Atom and all repositories under Atom will be archived on December 15, 2022. Learn more in our [official announcement](https://github.blog/2022-06-08-sunsetting-atom/)
+ # electron-link
 
 electron-link is a node module that takes a JavaScript file (typically the entry point of an application) and a list of modules that need to be required lazily (see [Atom's build scripts](https://github.com/atom/atom/blob/d9ebd7e125d5f07def1a057a0a8278d4d9d7d23a/script/lib/generate-startup-snapshot.js#L19-L65) for an example). Then, starting from that file, it traverses the entire require graph and replaces all the forbidden `require` calls in each file with a function that will be called at runtime. The output is a single script containing the code for all the modules reachable from the entry point. This file can be then supplied to `mksnapshot` to generate a snapshot blob.
 
